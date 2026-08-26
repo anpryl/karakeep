@@ -1,4 +1,8 @@
 import dns from "node:dns/promises";
+import http from "node:http";
+import https from "node:https";
+import type { LookupFunction } from "node:net";
+import { Readable } from "node:stream";
 import type { HeadersInit, RequestInit, Response } from "node-fetch";
 import { HttpProxyAgent } from "http-proxy-agent";
 import { HttpsProxyAgent } from "https-proxy-agent";
@@ -96,7 +100,7 @@ export function getBookmarkDomain(url?: string | null): string | undefined {
 }
 
 export type UrlValidationResult =
-  | { ok: true; url: URL }
+  | { ok: true; url: URL; resolvedAddresses?: string[] }
   | { ok: false; reason: string };
 
 function hostnameMatchesAnyPattern(
@@ -218,7 +222,62 @@ export async function validateUrl(
     }
   }
 
-  return { ok: true, url: parsedUrl } as const;
+  return { ok: true, url: parsedUrl, resolvedAddresses: records } as const;
+}
+
+/**
+ * Builds a socket lookup function from the addresses that validateUrl already
+ * checked. Returning one of those addresses directly to the HTTP agent avoids
+ * resolving the hostname again between validation and connection (a DNS
+ * rebinding/TOCTOU vulnerability).
+ */
+export function createPinnedLookup(addresses: string[]): LookupFunction {
+  // validateUrl already rejects the entire result set if any address is
+  // forbidden. Keep the socket boundary defensive as well, so a future caller
+  // cannot accidentally pin a connection to an unchecked address.
+  const lookupAddresses = addresses
+    .filter((address) => !isAddressForbidden(address))
+    .map((address) => ({
+      address,
+      family: ipaddr.parse(address).kind() === "ipv4" ? 4 : 6,
+    }));
+
+  return (_hostname, options, callback) => {
+    const requestedFamily =
+      options.family === 4 || options.family === "IPv4"
+        ? 4
+        : options.family === 6 || options.family === "IPv6"
+          ? 6
+          : undefined;
+    const matchingAddresses = requestedFamily
+      ? lookupAddresses.filter(({ family }) => family === requestedFamily)
+      : lookupAddresses;
+
+    if (matchingAddresses.length === 0) {
+      const error = new Error(
+        requestedFamily
+          ? `Validated DNS lookup returned no allowed IPv${requestedFamily} addresses`
+          : "Validated DNS lookup returned no allowed addresses",
+      ) as NodeJS.ErrnoException;
+      error.code = "ENOTFOUND";
+      callback(error, "", requestedFamily);
+      return;
+    }
+
+    if (options.all) {
+      callback(null, matchingAddresses);
+    } else {
+      const selectedAddress = matchingAddresses[0];
+      callback(null, selectedAddress.address, selectedAddress.family);
+    }
+  };
+}
+
+function getPinnedDnsAgent(url: URL, addresses: string[]) {
+  const options = { lookup: createPinnedLookup(addresses) };
+  return url.protocol === "https:"
+    ? new https.Agent(options)
+    : new http.Agent(options);
 }
 
 export function getRandomProxy(proxyList: string[]): string {
@@ -236,10 +295,43 @@ export function matchesNoProxy(url: string, noProxy: string[]) {
   }
 }
 
-export function getProxyAgent(url: string) {
-  const { proxy } = serverConfig;
+/**
+ * Pre-selected proxy URLs to use consistently across a single crawler run.
+ * Created once at the start of a run via `selectRunProxies()`.
+ */
+export interface RunProxyConfig {
+  httpProxy: string | undefined;
+  httpsProxy: string | undefined;
+  noProxy: string[] | undefined;
+}
 
-  if (!proxy.httpProxy && !proxy.httpsProxy) {
+/**
+ * Selects a random proxy from each configured proxy list, to be used
+ * consistently for the duration of a single crawler run.
+ */
+export function selectRunProxies(): RunProxyConfig {
+  const { proxy } = serverConfig;
+  return {
+    httpProxy: proxy.httpProxy ? getRandomProxy(proxy.httpProxy) : undefined,
+    httpsProxy: proxy.httpsProxy ? getRandomProxy(proxy.httpsProxy) : undefined,
+    noProxy: proxy.noProxy,
+  };
+}
+
+export function getProxyAgent(url: string, runProxy?: RunProxyConfig) {
+  const httpProxy = runProxy
+    ? runProxy.httpProxy
+    : serverConfig.proxy.httpProxy
+      ? getRandomProxy(serverConfig.proxy.httpProxy)
+      : undefined;
+  const httpsProxy = runProxy
+    ? runProxy.httpsProxy
+    : serverConfig.proxy.httpsProxy
+      ? getRandomProxy(serverConfig.proxy.httpsProxy)
+      : undefined;
+  const noProxy = runProxy ? runProxy.noProxy : serverConfig.proxy.noProxy;
+
+  if (!httpProxy && !httpsProxy) {
     return undefined;
   }
 
@@ -247,19 +339,16 @@ export function getProxyAgent(url: string) {
   const protocol = urlObj.protocol;
 
   // Check if URL should bypass proxy
-  if (proxy.noProxy && matchesNoProxy(url, proxy.noProxy)) {
+  if (noProxy && matchesNoProxy(url, noProxy)) {
     return undefined;
   }
 
-  if (protocol === "https:" && proxy.httpsProxy) {
-    const selectedProxy = getRandomProxy(proxy.httpsProxy);
-    return new HttpsProxyAgent(selectedProxy);
-  } else if (protocol === "http:" && proxy.httpProxy) {
-    const selectedProxy = getRandomProxy(proxy.httpProxy);
-    return new HttpProxyAgent(selectedProxy);
-  } else if (proxy.httpProxy) {
-    const selectedProxy = getRandomProxy(proxy.httpProxy);
-    return new HttpProxyAgent(selectedProxy);
+  if (protocol === "https:" && httpsProxy) {
+    return new HttpsProxyAgent(httpsProxy);
+  } else if (protocol === "http:" && httpProxy) {
+    return new HttpProxyAgent(httpProxy);
+  } else if (httpProxy) {
+    return new HttpProxyAgent(httpProxy);
   }
 
   return undefined;
@@ -303,6 +392,22 @@ function isRedirectResponse(response: Response): boolean {
     response.status === 307 ||
     response.status === 308
   );
+}
+
+function closeResponseBody(response: Response): void {
+  const body: unknown = response.body;
+  if (!body) {
+    return;
+  }
+
+  if (body instanceof Readable) {
+    body.destroy();
+  } else if (
+    typeof ReadableStream !== "undefined" &&
+    body instanceof ReadableStream
+  ) {
+    void body.cancel();
+  }
 }
 
 export type FetchWithProxyOptions = Omit<
@@ -371,6 +476,7 @@ export function buildFetchOptions({
 export const fetchWithProxy = async (
   url: string,
   options: FetchWithProxyOptions = {},
+  runProxy?: RunProxyConfig,
 ) => {
   const {
     maxRedirects,
@@ -386,14 +492,19 @@ export const fetchWithProxy = async (
   let currentBody = preparedBody;
 
   while (true) {
-    const agent = getProxyAgent(currentUrl);
+    const proxyAgent = getProxyAgent(currentUrl, runProxy);
 
-    const validation = await validateUrl(currentUrl, !!agent);
+    const validation = await validateUrl(currentUrl, !!proxyAgent);
     if (!validation.ok) {
       throw new Error(validation.reason);
     }
     const requestUrl = validation.url;
     currentUrl = requestUrl.toString();
+    const agent =
+      proxyAgent ??
+      (validation.resolvedAddresses
+        ? getPinnedDnsAgent(requestUrl, validation.resolvedAddresses)
+        : undefined);
 
     const response = await fetch(
       currentUrl,
@@ -436,3 +547,74 @@ export const fetchWithProxy = async (
     redirectsRemaining -= 1;
   }
 };
+
+export async function resolveValidatedRedirectUrl(
+  url: string,
+  options: Pick<
+    FetchWithProxyOptions,
+    "headers" | "maxRedirects" | "signal"
+  > = {},
+  runProxy?: RunProxyConfig,
+): Promise<URL> {
+  const { maxRedirects, baseHeaders, baseOptions } = prepareFetchOptions({
+    ...options,
+    method: "GET",
+  });
+
+  let redirectsRemaining = maxRedirects;
+  let currentUrl = url;
+
+  while (true) {
+    const signal = options.signal
+      ? AbortSignal.any([
+          AbortSignal.timeout(5000),
+          options.signal as globalThis.AbortSignal,
+        ])
+      : AbortSignal.timeout(5000);
+    const proxyAgent = getProxyAgent(currentUrl, runProxy);
+    const validation = await validateUrl(currentUrl, !!proxyAgent);
+    if (!validation.ok) {
+      throw new Error(validation.reason);
+    }
+
+    const requestUrl = validation.url;
+    currentUrl = requestUrl.toString();
+    const agent =
+      proxyAgent ??
+      (validation.resolvedAddresses
+        ? getPinnedDnsAgent(requestUrl, validation.resolvedAddresses)
+        : undefined);
+
+    const response = await fetch(
+      currentUrl,
+      buildFetchOptions({
+        method: "GET",
+        headers: baseHeaders,
+        agent,
+        baseOptions: {
+          ...baseOptions,
+          signal: signal as RequestInit["signal"],
+        },
+      }),
+    );
+
+    if (!isRedirectResponse(response)) {
+      closeResponseBody(response);
+      return requestUrl;
+    }
+
+    closeResponseBody(response);
+
+    const locationHeader = response.headers.get("location");
+    if (!locationHeader) {
+      return requestUrl;
+    }
+
+    if (redirectsRemaining <= 0) {
+      throw new Error(`Too many redirects while resolving ${url}`);
+    }
+
+    currentUrl = new URL(locationHeader, currentUrl).toString();
+    redirectsRemaining -= 1;
+  }
+}

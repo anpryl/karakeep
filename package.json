@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "karakeep",
+  "name": "@karakeep/root",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,8 +11,11 @@
     "db:generate": "pnpm --filter @karakeep/db run generate",
     "db:migrate": "pnpm --filter @karakeep/db run migrate",
     "db:studio": "pnpm --filter @karakeep/db studio",
+    "seed:apply": "pnpm --filter @karakeep/seed-snapshot run apply",
+    "seed:snapshot": "pnpm --filter @karakeep/seed-snapshot run snapshot",
     "workers": "pnpm --filter @karakeep/workers run start",
     "web": "pnpm --filter @karakeep/web run dev",
+    "web:portless": "pnpm --filter @karakeep/web run dev:portless",
     "android": "pnpm --filter @karakeep/mobile android",
     "ios": "pnpm --filter @karakeep/mobile ios",
     "prepare": "husky",
@@ -30,16 +33,10 @@
   },
   "devDependencies": {
     "@types/node": "^24",
-    "oxfmt": "^0.35.0",
-    "oxlint": "^1.50.0",
+    "oxfmt": "^0.45.0",
+    "oxlint": "^1.60.0",
     "sherif": "^1.6.1",
     "turbo": "^2.5.5"
   },
-  "packageManager": "pnpm@9.15.9",
-  "pnpm": {
-    "patchedDependencies": {
-      "xcode@3.0.1": "patches/xcode@3.0.1.patch",
-      "playwright-extra@4.3.6": "patches/playwright-extra@4.3.6.patch"
-    }
-  }
+  "packageManager": "pnpm@11.2.1"
 }

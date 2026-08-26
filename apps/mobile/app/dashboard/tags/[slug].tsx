@@ -1,6 +1,7 @@
 import { Stack, useLocalSearchParams } from "expo-router";
+import BookmarkListHeader from "@/components/bookmarks/BookmarkListHeader";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
-import FullPageError from "@/components/FullPageError";
+import QueryPageState from "@/components/QueryPageState";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { useArchiveFilter } from "@/lib/hooks";
 import { useQuery } from "@tanstack/react-query";
@@ -27,11 +28,12 @@ export default function TagView() {
         options={{
           headerTitle: tag?.name ?? "",
           headerBackTitle: "Back",
+          headerRight: () => <BookmarkListHeader />,
         }}
       />
-      {error ? (
-        <FullPageError error={error.message} onRetry={() => refetch()} />
-      ) : tag && !isSettingsLoading ? (
+      {!tag ? (
+        <QueryPageState error={error} onRetry={() => refetch()} />
+      ) : !isSettingsLoading ? (
         <UpdatingBookmarkList
           query={{
             tagId: tag.id,

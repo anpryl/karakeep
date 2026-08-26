@@ -98,7 +98,8 @@
     "more": "Więcej",
     "replace_banner": "Zastąp baner",
     "add_banner": "Dodaj baner",
-    "download": "Pobierz"
+    "download": "Pobierz",
+    "rename": "Zmień nazwę"
   },
   "settings": {
     "info": {
@@ -156,12 +157,12 @@
         "adjust_hint": "Dostosuj powyższe ustawienia, aby wyświetlić zmiany w podglądzie"
       },
       "avatar": {
-        "upload": "Wrzuć awatar",
+        "upload": "Prześlij awatar",
         "change": "Zmień awatar",
         "remove_confirm_title": "Usunąć awatar?",
         "updated": "Awatar zaktualizowany",
         "removed": "Awatar usunięty",
-        "description": "Wrzuć kwadratowy obrazek, który będzie Twoim awatarem.",
+        "description": "Prześlij kwadratowy obrazek, który będzie Twoim awatarem.",
         "remove_confirm_description": "To wyczyści Twoje aktualne zdjęcie profilowe.",
         "title": "Zdjęcie profilowe",
         "remove": "Usuń awatar"
@@ -180,7 +181,9 @@
       "import_bookmarks_from_linkwarden_export": "Importuj zakładki z eksportu Linkwarden",
       "import_bookmarks_from_tab_session_manager_export": "Importuj zakładki z Tab Session Manager",
       "import_bookmarks_from_mymind_export": "Importuj zakładki z eksportu mymind",
-      "import_bookmarks_from_instapaper_export": "Importuj zakładki z eksportu Instapaper"
+      "import_bookmarks_from_instapaper_export": "Importuj zakładki z eksportu Instapaper",
+      "import_bookmarks_from_readwise_reader_export": "Importuj zakładki z eksportu Readwise Reader",
+      "import_bookmarks_from_onetab_export": "Importuj zakładki z eksportu OneTab"
     },
     "back_to_app": "Powrót do aplikacji",
     "user_settings": "Ustawienia użytkownika",
@@ -232,7 +235,101 @@
       "key_regenerated": "Klucz został pomyślnie wygenerowany ponownie",
       "key_regenerated_please_copy": "Skopiuj nowy klucz i przechowuj go w bezpiecznym miejscu. Stary klucz został unieważniony i nie będzie już działać.",
       "regenerate_warning": "Czy na pewno chcesz wygenerować ponownie klucz API \"{{name}}\"?",
-      "regenerate_confirmation": "Spowoduje to odwołanie bieżącego klucza i wygenerowanie nowego. Wszystkie aplikacje korzystające z bieżącego klucza przestaną działać."
+      "regenerate_confirmation": "Spowoduje to odwołanie bieżącego klucza i wygenerowanie nowego. Wszystkie aplikacje korzystające z bieżącego klucza przestaną działać.",
+      "scopes": {
+        "scopes": "Zakresy",
+        "choose_at_least_one": "Wybierz co najmniej jeden zakres lub wybierz pełny dostęp.",
+        "scope_details": "Szczegóły zakresu {{scope}}",
+        "access": {
+          "none": "Brak",
+          "read": "Odczyt",
+          "readwrite": "Odczyt/zapis"
+        },
+        "full_access": {
+          "label": "Pełny dostęp",
+          "description": "Dostęp do wszystkich obsługiwanych operacji API."
+        },
+        "limited_scopes": {
+          "label": "Ograniczone zakresy",
+          "description": "Wybierz typy zasobów, do których ten klucz może mieć dostęp."
+        },
+        "resources": {
+          "assets": {
+            "label": "Zasoby",
+            "description": "Dostęp do plików i innych przechowywanych treści zakładek."
+          },
+          "backups": {
+            "label": "Kopie zapasowe",
+            "description": "Zarządzanie kopiami zapasowymi konta."
+          },
+          "bookmarks": {
+            "label": "Zakładki",
+            "description": "Dostęp i zarządzanie zakładkami."
+          },
+          "feeds": {
+            "label": "Kanały",
+            "description": "Zarządzanie kanałami RSS i powiązanymi danymi kanałów."
+          },
+          "highlights": {
+            "label": "Wyróżnienia",
+            "description": "Zarządzanie zapisanymi wyróżnieniami zakładek."
+          },
+          "lists": {
+            "label": "Listy",
+            "description": "Zarządzaj listami i członkostwem w listach."
+          },
+          "prompts": {
+            "label": "Polecenia",
+            "description": "Zarządzaj zapisaną konfiguracją poleceń AI."
+          },
+          "rules": {
+            "label": "Reguły",
+            "description": "Dostęp do reguł automatyzacji."
+          },
+          "tags": {
+            "label": "Tagi",
+            "description": "Dostęp do tagów i ich modyfikacja."
+          },
+          "users": {
+            "label": "Konto użytkownika",
+            "description": "Dostęp do profilu konta i ustawień."
+          },
+          "webhooks": {
+            "label": "Webhooki",
+            "description": "Dostęp do konfiguracji webhooków."
+          },
+          "subscriptions": {
+            "label": "Subskrypcje",
+            "description": "Dostęp do zarządzania subskrypcjami."
+          },
+          "importSessions": {
+            "label": "Sesje importu",
+            "description": "Dostęp do sesji importu."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Administrator: zakładki",
+            "description": "Dostęp do administracyjnych narzędzi zakładek."
+          },
+          "jobs": {
+            "label": "Administrator: zadania",
+            "description": "Dostęp do kontroli zadań w tle."
+          },
+          "system": {
+            "label": "Administrator: system",
+            "description": "Dostęp do statusu systemu i diagnostyki."
+          },
+          "users": {
+            "label": "Administrator: użytkownicy",
+            "description": "Dostęp do administracyjnego zarządzania użytkownikami."
+          },
+          "subscriptions": {
+            "label": "Admin: subskrypcje",
+            "description": "Zarządzaj poziomami subskrypcji użytkowników."
+          }
+        }
+      }
     },
     "broken_links": {
       "broken_links": "Uszkodzone linki",
@@ -297,7 +394,8 @@
         "or": "Którekolwiek z poniższych są prawdziwe",
         "url_does_not_contain": "Adres URL nie zawiera",
         "title_contains": "Tytuł zawiera",
-        "title_does_not_contain": "Tytuł nie zawiera"
+        "title_does_not_contain": "Tytuł nie zawiera",
+        "bookmark_source_is": "Źródło zakładek to"
       },
       "actions_types": {
         "add_tag": "Dodaj tag",
@@ -391,7 +489,17 @@
       "approaching_quota_limit": "Zbliżasz się do limitu",
       "loading_usage": "Ładowanie informacji o zużyciu...",
       "free": "Darmowy",
-      "paid": "Płatny"
+      "paid": "Płatny",
+      "monthly": "Miesięcznie",
+      "yearly": "Rocznie",
+      "per_month": "miesiąc",
+      "per_year": "rok",
+      "excl_vat": "netto",
+      "yearly_savings": "Oszczędź {{percent}}%",
+      "pro_feature_bookmarks": "50 000 zakładek",
+      "pro_feature_storage": "50 GB miejsca",
+      "pro_feature_ai_tagging": "Tagowanie oparte na AI",
+      "pro_feature_full_text_search": "Przeszukiwanie pełnotekstowe"
     },
     "import_sessions": {
       "title": "Importuj sesje",
@@ -407,9 +515,10 @@
         "completed": "Ukończone",
         "failed": "Niepowodzenie",
         "processing": "Przetwarzanie",
-        "staging": "Wersja testowa",
+        "staging": "Przygotowywanie",
         "running": "Uruchomiony",
-        "paused": "Wstrzymane"
+        "paused": "Wstrzymane",
+        "archived": "Zarchiwizowane"
       },
       "badges": {
         "pending": "{{count}} oczekujących",
@@ -446,8 +555,12 @@
         "no_results": "Nie znaleziono wyników dla tego filtra.",
         "view_bookmark": "Pokaż zakładkę",
         "load_more": "Załaduj więcej",
-        "no_title": "Brak tytułu"
-      }
+        "no_title": "Brak tytułu",
+        "archived_results": "Wyniki poszczególnych zakładek nie są już przechowywane dla zarchiwizowanych sesji importu."
+      },
+      "finalize_dialog_title": "Sfinalizuj sesję importu",
+      "finalize_dialog_description": "Dodać „{{name}}” do kolejki przetwarzania w tle? Rozpocznie się importowanie przygotowanych zakładek.",
+      "finalize_staging": "Sfinalizuj"
     },
     "backups": {
       "backups": "Kopie zapasowe",
@@ -570,6 +683,10 @@
         "admin_maintenance": {
           "title": "Zadania konserwacyjne administratora",
           "description": "Administracyjne czyszczenie i konserwacja zasobów"
+        },
+        "embeddings": {
+          "title": "Zadania osadzania",
+          "description": "Generowanie osadzeń wektorowych dla zakładek"
         }
       },
       "monitor_and_manage": "Monitoruj i zarządzaj kolejkami zadań w tle i zadaniami przetwarzania systemu",
@@ -604,7 +721,10 @@
         "migrate_large_link_html_content": "Przenieś dużą zawartość HTML inline do zasobów.",
         "recrawl_pending_links_only": "Tylko ponowne przeszukiwanie oczekujących linków",
         "regenerate_ai_tags_for_pending_bookmarks_only": "Tylko ponowne generowanie tagów AI dla oczekujących zakładek",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "Tylko ponowne generowanie podsumowań AI dla oczekujących zakładek"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Tylko ponowne generowanie podsumowań AI dla oczekujących zakładek",
+        "regenerate_embeddings_for_pending_bookmarks_only": "Regeneruj osadzenia tylko dla oczekujących zakładek",
+        "regenerate_embeddings_for_failed_bookmarks_only": "Regeneruj osadzenia tylko dla nieudanych zakładek",
+        "regenerate_embeddings_for_all_bookmarks": "Regeneruj osadzenia dla wszystkich zakładek"
       }
     },
     "actions": {
@@ -615,7 +735,7 @@
       "regenerate_ai_tags_for_all_bookmarks": "Regeneruj tagi AI dla wszystkich zakładek",
       "reindex_all_bookmarks": "Ponowne indeksowanie wszystkich zakładek",
       "compact_assets": "Kompaktuj zasoby",
-      "reprocess_assets_fix_mode": "Ponowne przetwarzanie zasobów (tryb fiksny)",
+      "reprocess_assets_fix_mode": "Ponowne przetwarzanie zasobów (tryb naprawczy)",
       "regenerate_ai_summaries_for_failed_bookmarks_only": "Wygeneruj ponownie podsumowania AI tylko dla nieudanych zakładek",
       "regenerate_ai_summaries_for_all_bookmarks": "Wygeneruj ponownie podsumowania AI dla wszystkich zakładek"
     },
@@ -629,7 +749,8 @@
         "not_configured": "Nieskonfigurowane",
         "connected": "Połączono",
         "disconnected": "Odłączono"
-      }
+      },
+      "vector_store": "Magazyn wektorowy"
     },
     "admin_tools": {
       "admin_tools": "Narzędzia administratora",
@@ -665,7 +786,10 @@
       "retag_queued": "Zadanie ponownego tagowania zostało dodane do kolejki",
       "resummarize_queued": "Zadanie ponownego podsumowania zostało dodane do kolejki",
       "view": "Wyświetl",
-      "fetch_error": "Błąd podczas pobierania zakładki"
+      "fetch_error": "Błąd podczas pobierania zakładki",
+      "embedding_status": "Status osadzania",
+      "regenerate_embedding": "Regeneruj osadzanie",
+      "regenerate_embedding_queued": "Zadanie regeneracji osadzania zostało dodane do kolejki"
     }
   },
   "tags": {
@@ -692,7 +816,11 @@
     "no_unused_tags_match_your_search": "Żadne nieużywane tagi nie pasują do wyszukiwania",
     "no_tags_match_your_search": "Żadne tagi nie pasują do wyszukiwania",
     "search_placeholder": "Szukaj tagów...",
-    "search_or_create_placeholder": "Szukaj lub twórz tagi..."
+    "search_or_create_placeholder": "Szukaj lub twórz tagi...",
+    "rename_tag": "Zmień nazwę tagu",
+    "items_count": "{{count}} elementów",
+    "attached_by_you": "{{count}} przez Ciebie",
+    "attached_by_ai": "{{count}} przez AI"
   },
   "editor": {
     "text_toolbar": {
@@ -780,7 +908,9 @@
     },
     "tags": {
       "created": "Etykieta została utworzona!",
-      "failed_to_create": "Nie udało się utworzyć etykiety"
+      "failed_to_create": "Nie udało się utworzyć etykiety",
+      "updated": "Tag został zaktualizowany!",
+      "failed_to_update": "Nie udało się zaktualizować tagu"
     }
   },
   "layouts": {
@@ -855,7 +985,7 @@
       "no_collaborators_readonly": "Brak współpracowników dla tej listy.",
       "people_with_access": "Osoby, które mają dostęp do tej listy",
       "add_or_remove": "Dodaj lub usuń osoby, które mogą uzyskać dostęp do tej listy",
-      "invitation_sent": "Zaproszenie wysłane, ziom!",
+      "invitation_sent": "Zaproszenie wysłane pomyślnie",
       "invitation_revoked": "Cofnięto zaproszenie",
       "failed_to_revoke": "Nie udało się cofnąć zaproszenia",
       "pending": "Oczekuje",
@@ -880,7 +1010,18 @@
       "failed_to_accept": "Nie udało się zaakceptować zaproszenia",
       "failed_to_decline": "Nie udało się odrzucić zaproszenia"
     },
-    "shared_lists": "Listy współdzielone"
+    "shared_lists": "Listy współdzielone",
+    "privacy": {
+      "public": "Publiczne",
+      "shared": "Udostępnione",
+      "private": "Prywatne"
+    },
+    "summary_list_one": "{{count}} Listy",
+    "summary_list_other": "{{count}} Listy",
+    "summary_bookmark_one": "{{count}} Zakładki",
+    "summary_bookmark_other": "{{count}} Zakładki",
+    "items_count_one": "{{count}} elementów",
+    "items_count_other": "{{count}} elementów"
   },
   "preview": {
     "view_original": "Zobacz oryginał",
@@ -948,12 +1089,24 @@
     "lists": "Listy",
     "feeds": "Kanały",
     "is_from_source": "Źródło to",
-    "is_not_from_source": "To nie jest źródło"
+    "is_not_from_source": "To nie jest źródło",
+    "mode_label": "Tryb wyszukiwania",
+    "mode_label_description": "Wybierz, w jaki sposób Karakeep znajduje pasujące zakładki.",
+    "mode_keyword": "Słowo kluczowe",
+    "mode_keyword_description": "Dopasuj dokładne słowa w tytułach, treści, adresach URL i notatkach. Prawie natychmiastowe.",
+    "mode_hybrid": "Hybrydowy",
+    "mode_hybrid_description": "Połącz dokładne dopasowania z powiązanymi pojęciami, aby uzyskać najlepszą równowagę. Wolniejsze niż wyszukiwanie słów kluczowych.",
+    "mode_semantic": "Semantyczny",
+    "mode_semantic_description": "Znajdź zakładki podobne koncepcyjnie, nawet bez wspólnych słów. Wolniejsze niż wyszukiwanie słów kluczowych.",
+    "keyword_placeholder": "Przeszukaj tytuły, tekst, adresy URL i tagi…",
+    "hybrid_placeholder": "Szukaj według słów lub znaczenia…",
+    "semantic_placeholder": "Opisz to, co pamiętasz…"
   },
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_description": "Na pewno chcesz usunąć ten zakładkę?",
-      "delete_confirmation_title": "Usunąć zakładkę?"
+      "delete_confirmation_title": "Usunąć zakładkę?",
+      "bulk_delete_confirmation_description": "Czy na pewno chcesz usunąć {{count}} zakładek?"
     }
   },
   "banners": {
@@ -1042,5 +1195,28 @@
     "download": "Pobierz",
     "close": "Zamknij",
     "generating": "Generowanie..."
+  },
+  "keyboard_shortcuts": {
+    "title": "Skróty klawiszowe",
+    "sections": {
+      "navigation": "Nawigacja",
+      "actions": "Akcje",
+      "selection": "Wybór",
+      "other": "Inne"
+    },
+    "move_left": "Przesuń w lewo",
+    "move_down": "Przesuń w dół",
+    "move_up": "Przesuń w górę",
+    "move_right": "Przesuń w prawo",
+    "open_bookmark": "Otwórz zakładkę",
+    "clear_focus": "Usuń zaznaczenie / zakończ edycję zbiorczą",
+    "toggle_favorite": "Przełącz ulubione",
+    "toggle_archive": "Zarchiwizuj / Przywróć z archiwum",
+    "delete_bookmark": "Usuń zakładkę",
+    "toggle_selection": "Przełącz zaznaczenie",
+    "select_all": "Zaznacz wszystko",
+    "deselect_all": "Odznacz wszystko",
+    "show_help": "Pokaż skróty klawiszowe",
+    "focus_search_alt": "Ustaw fokus na wyszukiwanie"
   }
 }

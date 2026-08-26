@@ -9,7 +9,7 @@ import {
 } from "@karakeep/shared/queueing";
 import { zRuleEngineEventSchema } from "@karakeep/shared/types/rules";
 
-import { loadAllPlugins } from ".";
+import { loadAllPlugins } from "./plugins";
 
 export enum QueuePriority {
   Low = 50,
@@ -108,10 +108,22 @@ export const LowPriorityCrawlerQueue = createDeferredQueue<ZCrawlLinkRequest>(
   },
 );
 
+// Builds a stable, payload-derived idempotency key for crawler queue jobs.
+// Keys sort before serialization so `{a, b}` and `{b, a}` produce the same
+// key, and differing flags (archiveFullPage, runInference, storePdf) yield
+// distinct keys so non-equivalent crawls are not deduped together.
+export function buildCrawlIdempotencyKey(payload: ZCrawlLinkRequest): string {
+  return `crawl:${JSON.stringify(payload, Object.keys(payload).sort())}`;
+}
+
 // Inference Worker
 export const zOpenAIRequestSchema = z.object({
   bookmarkId: z.string(),
   type: z.enum(["summarize", "tag"]).default("tag"),
+  // Precomputed embedding so tagging can find similar bookmarks via
+  // search({vector}) without waiting for the vector to be indexed. Only set on
+  // the embed -> tag path.
+  embedding: z.array(z.number()).optional(),
 });
 export type ZOpenAIRequest = z.infer<typeof zOpenAIRequestSchema>;
 
@@ -121,6 +133,44 @@ export const OpenAIQueue = createDeferredQueue<ZOpenAIRequest>("openai_queue", {
   },
   keepFailedJobs: false,
 });
+
+// Embeddings Worker
+//
+// - "embed": entry point. Generates the bookmark embedding, then dispatches the
+//   tagging job (carrying the vector) and an "index" job. Does NOT persist the
+//   vector itself, so it never retries on indexing failures.
+// - "index": persists a precomputed vector in the vector store. Its retries (the
+//   slow Meilisearch index build) are isolated and never re-trigger tagging.
+// - "delete": removes the vector from the store.
+export const zEmbeddingsRequestSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("embed"),
+    bookmarkId: z.string(),
+    force: z.boolean().optional(),
+    runTaggingOnComplete: z.boolean().optional().default(true),
+  }),
+  z.object({
+    type: z.literal("index"),
+    bookmarkId: z.string(),
+    userId: z.string(),
+    embedding: z.array(z.number()),
+  }),
+  z.object({
+    type: z.literal("delete"),
+    bookmarkId: z.string(),
+  }),
+]);
+export type ZEmbeddingsRequest = z.infer<typeof zEmbeddingsRequestSchema>;
+
+export const EmbeddingsQueue = createDeferredQueue<ZEmbeddingsRequest>(
+  "embeddings_queue",
+  {
+    defaultJobArgs: {
+      numRetries: 3,
+    },
+    keepFailedJobs: false,
+  },
+);
 
 // Search Indexing Worker
 export const zSearchIndexingRequestSchema = z.object({
@@ -257,22 +307,6 @@ export const WebhookQueue = createDeferredQueue<ZWebhookRequest>(
   },
 );
 
-export async function triggerWebhook(
-  bookmarkId: string,
-  operation: ZWebhookRequest["operation"],
-  userId?: string,
-  opts?: EnqueueOptions,
-) {
-  await WebhookQueue.enqueue(
-    {
-      bookmarkId,
-      userId,
-      operation,
-    },
-    opts,
-  );
-}
-
 // RuleEngine worker
 export const zRuleEngineRequestSchema = z.object({
   bookmarkId: z.string(),
@@ -288,20 +322,6 @@ export const RuleEngineQueue = createDeferredQueue<ZRuleEngineRequest>(
     keepFailedJobs: false,
   },
 );
-
-export async function triggerRuleEngineOnEvent(
-  bookmarkId: string,
-  events: z.infer<typeof zRuleEngineEventSchema>[],
-  opts?: EnqueueOptions,
-) {
-  await RuleEngineQueue.enqueue(
-    {
-      events,
-      bookmarkId,
-    },
-    opts,
-  );
-}
 
 // Content Image Worker
 export const zContentImageRequestSchema = z.object({

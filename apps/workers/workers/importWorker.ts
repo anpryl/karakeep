@@ -20,11 +20,13 @@ import {
   importSessions,
   importStagingBookmarks,
 } from "@karakeep/db/schema";
+import { addLogFields, withEventLog } from "@karakeep/shared-server";
 import logger, { throttledLogger } from "@karakeep/shared/logger";
 import {
   BookmarkTypes,
   MAX_BOOKMARK_TITLE_LENGTH,
 } from "@karakeep/shared/types/bookmarks";
+import { ImportSessionsService } from "@karakeep/trpc/models/importSessions.service";
 
 import { registry } from "../metrics";
 
@@ -106,6 +108,9 @@ export class ImportWorker {
   private maxInFlight = 50;
   private batchSize = 10;
   private staleThresholdMs = 60 * 60 * 1000; // 1 hour
+  private archiveIntervalMs = 60 * 60 * 1000; // 1 hour
+  private archiveAfterMs = 30 * 24 * 60 * 60 * 1000; // 30 days
+  private lastArchiveSweepAt = 0;
 
   async start() {
     this.running = true;
@@ -115,6 +120,17 @@ export class ImportWorker {
 
     while (this.running) {
       try {
+        if (Date.now() - this.lastArchiveSweepAt >= this.archiveIntervalMs) {
+          this.lastArchiveSweepAt = Date.now();
+          try {
+            await this.archiveCompletedSessions();
+          } catch (error) {
+            logger.error(
+              `[import] Error archiving completed sessions: ${error}`,
+            );
+          }
+        }
+
         // Periodically reset stale processing items (every 60 iterations ~= 1 min)
         if (iterationCount % 60 === 0) {
           await this.resetStaleProcessingItems();
@@ -143,6 +159,19 @@ export class ImportWorker {
   stop() {
     logger.info("[import] Stopping import polling worker");
     this.running = false;
+  }
+
+  private async archiveCompletedSessions(): Promise<void> {
+    const cutoff = new Date(Date.now() - this.archiveAfterMs);
+    const archivedCount = await new ImportSessionsService(
+      db,
+    ).archiveCompletedSystem(cutoff);
+
+    if (archivedCount > 0) {
+      logger.info(
+        `[import] Archived ${archivedCount} completed import session(s) older than 30 days`,
+      );
+    }
   }
 
   private async processBatch(): Promise<number> {
@@ -377,11 +406,13 @@ export class ImportWorker {
         ?.trim()
         .substring(0, MAX_BOOKMARK_TITLE_LENGTH);
 
-      const baseRequest = {
+      const baseRequest: Partial<CreateBookmarkInput> = {
         title: normalizedTitle || undefined,
         note: staged.note ?? undefined,
         createdAt: staged.sourceAddedAt ?? undefined,
         crawlPriority: "low" as const,
+        archived: staged.archived ?? false,
+        source: "import",
       };
 
       let bookmarkRequest: CreateBookmarkInput;
@@ -503,13 +534,35 @@ export class ImportWorker {
         );
 
       if (remaining[0]?.count === 0) {
-        logger.info(
-          `[import] Session ${sessionId} completed, all items processed`,
-        );
-        await db
-          .update(importSessions)
-          .set({ status: "completed" })
-          .where(eq(importSessions.id, sessionId));
+        await withEventLog("bookmark.import", async () => {
+          logger.info(
+            `[import] Session ${sessionId} completed, all items processed`,
+          );
+          await db
+            .update(importSessions)
+            .set({ status: "completed", completedAt: new Date() })
+            .where(eq(importSessions.id, sessionId));
+          const session = await db.query.importSessions.findFirst({
+            where: eq(importSessions.id, sessionId),
+            columns: { userId: true, name: true },
+          });
+          const acceptedCount = await db
+            .select({ count: count() })
+            .from(importStagingBookmarks)
+            .where(
+              and(
+                eq(importStagingBookmarks.importSessionId, sessionId),
+                eq(importStagingBookmarks.result, "accepted"),
+              ),
+            );
+          if (session) {
+            addLogFields<"bookmark.import">({
+              "user.id": session.userId,
+              "import.source": session.name,
+              "import.count": acceptedCount[0]?.count ?? 0,
+            });
+          }
+        });
       }
     }
   }

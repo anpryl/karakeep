@@ -309,20 +309,56 @@ export function ImportExportRow() {
             <p>Import</p>
           </FilePickerButton>
         </ImportCard>
+        <ImportCard
+          text="Readwise Reader"
+          description={t(
+            "settings.import.import_bookmarks_from_readwise_reader_export",
+          )}
+        >
+          <FilePickerButton
+            size={"sm"}
+            loading={false}
+            accept=".csv"
+            multiple={false}
+            className="flex items-center gap-2"
+            onFileSelect={(file) =>
+              runUploadBookmarkFile({ file, source: "readwise-reader" })
+            }
+          >
+            <p>Import</p>
+          </FilePickerButton>
+        </ImportCard>
+        <ImportCard
+          text="OneTab"
+          description={t("settings.import.import_bookmarks_from_onetab_export")}
+        >
+          <FilePickerButton
+            size={"sm"}
+            loading={false}
+            accept=".txt"
+            multiple={false}
+            className="flex items-center gap-2"
+            onFileSelect={(file) =>
+              runUploadBookmarkFile({ file, source: "onetab" })
+            }
+          >
+            <p>Import</p>
+          </FilePickerButton>
+        </ImportCard>
         <ExportButton />
       </div>
-      {importProgress && (
-        <div className="flex flex-col gap-2">
-          <p className="shrink-0 text-sm">
-            Processed {importProgress.done} of {importProgress.total} bookmarks
-          </p>
-          <div className="w-full">
-            <Progress
-              value={(importProgress.done * 100) / importProgress.total}
-            />
+      {Object.entries(importProgress).map(([id, progress]) => {
+        return (
+          <div key={id} className="flex flex-col gap-2">
+            <p className="shrink-0 text-sm">
+              Processed {progress.done} of {progress.total} bookmarks
+            </p>
+            <div className="w-full">
+              <Progress value={(progress.done * 100) / progress.total} />
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })}
     </div>
   );
 }

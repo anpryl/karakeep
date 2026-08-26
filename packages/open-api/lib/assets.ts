@@ -1,14 +1,10 @@
-import {
-  extendZodWithOpenApi,
-  OpenAPIRegistry,
-} from "@asteasolutions/zod-to-openapi";
-import { z } from "zod";
+import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
+import * as z from "zod";
 
 import { BearerAuth } from "./common";
 import { UnauthorizedResponse } from "./errors";
 
 export const registry = new OpenAPIRegistry();
-extendZodWithOpenApi(z);
 
 export const AssetIdSchema = registry.registerParameter(
   "AssetId",
@@ -37,7 +33,11 @@ registry.registerPath({
       content: {
         "multipart/form-data": {
           schema: z.object({
-            file: z.instanceof(File).openapi("File to be uploaded"),
+            file: z.instanceof(File).openapi({
+              description: "File to be uploaded",
+              type: "string",
+              format: "binary",
+            }),
           }),
         },
       },
@@ -90,6 +90,46 @@ registry.registerPath({
     200: {
       description:
         "The asset's binary content. The Content-Type header reflects the asset's MIME type (e.g., image/png, application/pdf).",
+    },
+    401: UnauthorizedResponse,
+  },
+});
+
+registry.registerPath({
+  operationId: "getAssetSignedUrl",
+  method: "get",
+  path: "/assets/{assetId}/signed-url",
+  description:
+    "Generate a temporary signed URL that can be used to download an asset without sending an API key.",
+  summary: "Get a signed asset URL",
+  tags: ["Assets"],
+  security: [{ [BearerAuth.name]: [] }],
+  request: {
+    params: z.object({ assetId: AssetIdSchema }),
+  },
+  responses: {
+    200: {
+      description:
+        "A temporary signed URL for downloading the asset and its expiration time.",
+      content: {
+        "application/json": {
+          schema: z
+            .object({
+              assetId: z
+                .string()
+                .describe("The unique identifier of the asset."),
+              signedUrl: z
+                .string()
+                .url()
+                .describe("The temporary URL for downloading the asset."),
+              expiresAt: z
+                .string()
+                .datetime()
+                .describe("When the signed URL expires, in ISO 8601 format."),
+            })
+            .openapi("SignedAssetUrl"),
+        },
+      },
     },
     401: UnauthorizedResponse,
   },

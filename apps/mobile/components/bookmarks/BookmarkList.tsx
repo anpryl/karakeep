@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { ActivityIndicator, Keyboard, View } from "react-native";
 import Animated, { LinearTransition } from "react-native-reanimated";
 import EmptyState from "@/components/ui/EmptyState";
-import { useScrollToTop } from "@react-navigation/native";
+import { useScrollToTop } from "expo-router";
 import { Bookmark } from "lucide-react-native";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
@@ -34,9 +34,9 @@ export default function BookmarkList({
       contentInsetAdjustmentBehavior="automatic"
       ListHeaderComponent={header}
       contentContainerStyle={{
-        gap: 15,
+        gap: 12,
         marginHorizontal: 15,
-        marginBottom: 15,
+        paddingBottom: 20,
       }}
       renderItem={(b) => <BookmarkCard bookmark={b.item} />}
       ListEmptyComponent={

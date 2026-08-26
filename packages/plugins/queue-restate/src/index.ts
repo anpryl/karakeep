@@ -1,3 +1,5 @@
+import { format } from "node:util";
+
 import * as restate from "@restatedev/restate-sdk";
 import * as restateClient from "@restatedev/restate-sdk-clients";
 
@@ -12,6 +14,7 @@ import type {
   RunnerOptions,
 } from "@karakeep/shared/queueing";
 import logger from "@karakeep/shared/logger";
+import { queueOptionsEqual } from "@karakeep/shared/queueing";
 
 import { envConfig } from "./env";
 import { idProvider } from "./idProvider";
@@ -161,20 +164,31 @@ class RestateQueueClient implements QueueClient {
       identityKeys: envConfig.RESTATE_PUB_KEY
         ? [envConfig.RESTATE_PUB_KEY]
         : undefined,
-      logger: (meta, msg) => {
-        if (meta.context) {
-          // No need to log invocation logs
-        } else {
-          logger.log(meta.level, `[restate] ${msg}`);
+      logger: (meta, message, ...optionalParams) => {
+        if (meta.replaying) {
+          return;
         }
+
+        const invocationContext = meta.context
+          ? `[${meta.context.invocationTarget}][${meta.context.invocationId}]`
+          : "";
+        const level = meta.level === "trace" ? "debug" : meta.level;
+        logger.log(
+          level,
+          `[restate]${invocationContext} ${format(message, ...optionalParams)}`,
+        );
       },
     });
     logger.info(`Restate listening on port ${port}`);
   }
 
   createQueue<T>(name: string, opts: QueueOptions): Queue<T> {
-    if (this.queues.has(name)) {
-      throw new Error(`Queue ${name} already exists`);
+    const existing = this.queues.get(name);
+    if (existing) {
+      if (!queueOptionsEqual(existing.opts, opts)) {
+        throw new Error(`Queue ${name} already exists with different options`);
+      }
+      return existing as RestateQueueWrapper<T>;
     }
     const wrapper = new RestateQueueWrapper<T>(name, this.client, opts);
     this.queues.set(name, wrapper);

@@ -7,7 +7,9 @@ import {
   AssetPreprocessingQueue,
   BackupQueue,
   ContentImageQueue,
+  EmbeddingsQueue,
   FeedQueue,
+  initEventLogger,
   initTracing,
   LinkCrawlerQueue,
   loadAllPlugins,
@@ -16,6 +18,7 @@ import {
   prepareQueue,
   RuleEngineQueue,
   SearchIndexingQueue,
+  shutdownEventLogger,
   shutdownTracing,
   startQueue,
   VideoWorkerQueue,
@@ -30,6 +33,7 @@ import { AssetPreprocessingWorker } from "./workers/assetPreprocessingWorker";
 import { BackupSchedulingWorker, BackupWorker } from "./workers/backupWorker";
 import { ContentImageWorker } from "./workers/contentImageWorker";
 import { CrawlerWorker } from "./workers/crawlerWorker";
+import { EmbeddingsWorker } from "./workers/embeddingsWorker";
 import { FeedRefreshingWorker, FeedWorker } from "./workers/feedWorker";
 import { ImportWorker } from "./workers/importWorker";
 import { OpenAiWorker } from "./workers/inference/inferenceWorker";
@@ -46,6 +50,10 @@ const workerBuilders = {
   lowPriorityCrawler: async () => {
     await LowPriorityCrawlerQueue.ensureInit();
     return CrawlerWorker.build(LowPriorityCrawlerQueue);
+  },
+  embeddings: async () => {
+    await EmbeddingsQueue.ensureInit();
+    return EmbeddingsWorker.build();
   },
   inference: async () => {
     await OpenAIQueue.ensureInit();
@@ -106,6 +114,7 @@ function isWorkerEnabled(name: WorkerName) {
 async function main() {
   await loadAllPlugins();
   initTracing("workers");
+  initEventLogger("workers");
   logger.info(`Workers version: ${serverConfig.serverVersion ?? "not set"}`);
   await prepareQueue();
 
@@ -164,6 +173,7 @@ async function main() {
     worker.stop();
   }
   await httpServer.stop();
+  await shutdownEventLogger();
   await shutdownTracing();
   process.exit(0);
 }

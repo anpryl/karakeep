@@ -1,8 +1,10 @@
-import { createHash, randomBytes } from "crypto";
-import * as bcrypt from "bcryptjs";
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
+import bcrypt from "bcryptjs";
 import { and, eq } from "drizzle-orm";
 
 import { apiKeys } from "@karakeep/db/schema";
+import type { ZApiKeyScope } from "@karakeep/shared/types/apiKeys";
+import { API_KEY_FULL_ACCESS_SCOPE } from "@karakeep/shared/types/apiKeys";
 import serverConfig from "@karakeep/shared/config";
 
 import type { Context } from "./index";
@@ -10,6 +12,18 @@ import type { Context } from "./index";
 const BCRYPT_SALT_ROUNDS = 10;
 const API_KEY_PREFIX_V1 = "ak1";
 const API_KEY_PREFIX_V2 = "ak2";
+
+// A *real* bcrypt hash of a random secret, used to burn the same amount of CPU
+// on login paths that have no password to check against. It must be a valid
+// hash at the same cost factor as real passwords: bcrypt parses the hash to
+// recover the cost and salt, so handing it an arbitrary string makes it bail
+// out immediately without deriving anything, which is exactly the timing leak
+// these comparisons exist to close. Nothing can match it -- the input is
+// random and thrown away.
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync(
+  randomBytes(32).toString("hex"),
+  BCRYPT_SALT_ROUNDS,
+);
 
 function generateApiKeySecret() {
   const secret = randomBytes(16).toString("hex");
@@ -51,6 +65,7 @@ export async function generateApiKey(
   name: string,
   userId: string,
   database: Context["db"],
+  scopes: ZApiKeyScope[],
 ) {
   const { keyId, secret, secretHash } = generateApiKeySecret();
 
@@ -64,6 +79,7 @@ export async function generateApiKey(
         userId: userId,
         keyId,
         keyHash: secretHash,
+        scopes,
       })
       .returning()
   )[0];
@@ -72,8 +88,15 @@ export async function generateApiKey(
     id: key.id,
     name: key.name,
     createdAt: key.createdAt,
+    scopes: normalizeApiKeyScopes(key.scopes),
     key: plain,
   };
+}
+
+function normalizeApiKeyScopes(
+  scopes: ZApiKeyScope[] | null | undefined,
+): ZApiKeyScope[] {
+  return scopes?.length ? scopes : [API_KEY_FULL_ACCESS_SCOPE];
 }
 
 function parseApiKey(plain: string) {
@@ -113,10 +136,14 @@ export async function authenticateApiKey(key: string, database: Context["db"]) {
     case 1:
       validation = await bcrypt.compare(keySecret, hash);
       break;
-    case 2:
+    case 2: {
+      const candidateHash = createHash("sha256").update(keySecret).digest();
+      const expectedHash = Buffer.from(hash, "base64");
       validation =
-        createHash("sha256").update(keySecret).digest("base64") == hash;
+        candidateHash.length === expectedHash.length &&
+        timingSafeEqual(candidateHash, expectedHash);
       break;
+    }
     default:
       throw new Error("Invalid API Key");
   }
@@ -138,7 +165,14 @@ export async function authenticateApiKey(key: string, database: Context["db"]) {
       });
   }
 
-  return apiKey.user;
+  return {
+    user: apiKey.user,
+    apiKey: {
+      id: apiKey.id,
+      keyId: apiKey.keyId,
+      scopes: normalizeApiKeyScopes(apiKey.scopes),
+    },
+  };
 }
 
 export async function hashPassword(password: string, salt: string | null) {
@@ -159,15 +193,14 @@ export async function validatePassword(
 
   if (!user) {
     // Run a bcrypt comparison anyways to hide the fact of whether the user exists or not (protecting against timing attacks)
-    await bcrypt.compare(
-      password +
-        "b6bfd1e907eb40462e73986f6cd628c036dc079b101186d36d53b824af3c9d2e",
-      "a-dummy-password-that-should-never-match",
-    );
+    await bcrypt.compare(password, DUMMY_PASSWORD_HASH);
     throw new Error("User not found");
   }
 
   if (!user.password) {
+    // Same reasoning: returning early here would make accounts without a
+    // password (OAuth-only) measurably faster to probe than password accounts.
+    await bcrypt.compare(password, DUMMY_PASSWORD_HASH);
     throw new Error("This user doesn't have a password defined");
   }
 

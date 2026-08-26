@@ -53,7 +53,7 @@ export function useImportSessionStats(importSessionId: string) {
       {
         refetchInterval: (q) =>
           !q.state.data ||
-          !["completed", "failed"].includes(q.state.data.status)
+          !["completed", "failed", "archived"].includes(q.state.data.status)
             ? 5000
             : false, // Refetch every 5 seconds to show progress
         enabled: !!importSessionId,
@@ -72,6 +72,12 @@ export function useDeleteImportSession() {
         queryClient.invalidateQueries(
           api.importSessions.listImportSessions.pathFilter(),
         );
+        queryClient.invalidateQueries(
+          api.importSessions.getImportSessionStats.pathFilter(),
+        );
+        queryClient.invalidateQueries(
+          api.importSessions.getImportSessionResults.pathFilter(),
+        );
         toast({
           description: "Import session deleted successfully",
           variant: "default",
@@ -80,6 +86,37 @@ export function useDeleteImportSession() {
       onError: (error) => {
         toast({
           description: error.message || "Failed to delete import session",
+          variant: "destructive",
+        });
+      },
+    }),
+  );
+}
+
+export function useFinalizeImportStaging() {
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    api.importSessions.finalizeImportStaging.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries(
+          api.importSessions.listImportSessions.pathFilter(),
+        );
+        queryClient.invalidateQueries(
+          api.importSessions.getImportSessionStats.pathFilter(),
+        );
+        queryClient.invalidateQueries(
+          api.importSessions.getImportSessionResults.pathFilter(),
+        );
+        toast({
+          description: "Import session queued for processing",
+          variant: "default",
+        });
+      },
+      onError: (error) => {
+        toast({
+          description: error.message || "Failed to finalize import session",
           variant: "destructive",
         });
       },
@@ -96,6 +133,9 @@ export function usePauseImportSession() {
       onSuccess: () => {
         queryClient.invalidateQueries(
           api.importSessions.listImportSessions.pathFilter(),
+        );
+        queryClient.invalidateQueries(
+          api.importSessions.getImportSessionStats.pathFilter(),
         );
         toast({
           description: "Import session paused",
@@ -122,6 +162,9 @@ export function useResumeImportSession() {
         queryClient.invalidateQueries(
           api.importSessions.listImportSessions.pathFilter(),
         );
+        queryClient.invalidateQueries(
+          api.importSessions.getImportSessionStats.pathFilter(),
+        );
         toast({
           description: "Import session resumed",
           variant: "default",
@@ -140,12 +183,16 @@ export function useResumeImportSession() {
 export function useImportSessionResults(
   importSessionId: string,
   filter: "all" | "accepted" | "rejected" | "skipped_duplicate" | "pending",
+  enabled = true,
 ) {
   const api = useTRPC();
   return useInfiniteQuery(
     api.importSessions.getImportSessionResults.infiniteQueryOptions(
       { importSessionId, filter, limit: 50 },
-      { getNextPageParam: (lastPage) => lastPage.nextCursor },
+      {
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+        enabled: !!importSessionId && enabled,
+      },
     ),
   );
 }

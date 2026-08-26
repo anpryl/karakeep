@@ -1,11 +1,21 @@
-import { useState } from "react";
-import { Pressable, TouchableOpacity, View } from "react-native";
+import { useCallback, useMemo, useState } from "react";
+import { Linking, Pressable, TouchableOpacity, View } from "react-native";
 import ImageView from "react-native-image-viewing";
 import WebView from "react-native-webview";
-import { WebViewSourceUri } from "react-native-webview/lib/WebViewTypes";
+import {
+  ShouldStartLoadRequest,
+  WebViewSourceUri,
+} from "react-native-webview/lib/WebViewTypes";
+import * as WebBrowser from "expo-web-browser";
+import QueryPageState from "@/components/QueryPageState";
 import { Text } from "@/components/ui/Text";
 import { useAssetUrl } from "@/lib/hooks";
+import {
+  getOfflineLibraryScope,
+  useOfflineArticleContent,
+} from "@/lib/offlineLibrary";
 import { useReaderSettings, WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
+import useAppSettings from "@/lib/settings";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpen, X } from "lucide-react-native";
@@ -19,11 +29,22 @@ import { useReadingProgress } from "@karakeep/shared-react/hooks/reading-progres
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
-import FullPageError from "../FullPageError";
-import FullPageSpinner from "../ui/FullPageSpinner";
 import BookmarkAssetImage from "./BookmarkAssetImage";
 import BookmarkHtmlHighlighterDom from "./BookmarkHtmlHighlighterDom";
 import { PDFViewer } from "./PDFViewer";
+
+function openUrlExternally(url: string) {
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    void WebBrowser.openBrowserAsync(url);
+  } else if (
+    url.startsWith("mailto:") ||
+    url.startsWith("tel:") ||
+    url.startsWith("sms:")
+  ) {
+    void Linking.openURL(url);
+  }
+  // Ignore javascript: and other schemes
+}
 
 export function BookmarkLinkBrowserPreview({
   bookmark,
@@ -34,11 +55,27 @@ export function BookmarkLinkBrowserPreview({
     throw new Error("Wrong content type rendered");
   }
 
+  const bookmarkUrl = bookmark.content.url;
+
+  const onShouldStartLoadWithRequest = useCallback(
+    (request: ShouldStartLoadRequest) => {
+      const bookmarkOrigin = new URL(bookmarkUrl).origin;
+      if (request.url.startsWith(bookmarkOrigin)) {
+        return true;
+      }
+      openUrlExternally(request.url);
+      return false;
+    },
+    [bookmarkUrl],
+  );
+
   return (
     <WebView
       startInLoadingState={true}
       mediaPlaybackRequiresUserAction={true}
-      source={{ uri: bookmark.content.url }}
+      source={{ uri: bookmarkUrl }}
+      setSupportMultipleWindows={false}
+      onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
     />
   );
 }
@@ -74,12 +111,16 @@ export function BookmarkLinkReaderPreview({
 }) {
   const { isDarkColorScheme: isDark } = useColorScheme();
   const { settings: readerSettings } = useReaderSettings();
+  const { settings } = useAppSettings();
   const api = useTRPC();
+  const offlineHtmlContent = useOfflineArticleContent(
+    getOfflineLibraryScope(settings),
+    bookmark.id,
+  );
 
   const {
     data: bookmarkWithContent,
     error,
-    isLoading,
     refetch,
   } = useQuery(
     api.bookmarks.getBookmark.queryOptions({
@@ -87,6 +128,23 @@ export function BookmarkLinkReaderPreview({
       includeContent: true,
     }),
   );
+  // The offline body is stored on its own, so fold it back into the bookmark
+  // this component was already handed rather than reading the saved metadata.
+  const displayedBookmarkWithContent = useMemo(() => {
+    if (bookmarkWithContent) {
+      return bookmarkWithContent;
+    }
+    if (
+      offlineHtmlContent === undefined ||
+      bookmark.content.type !== BookmarkTypes.LINK
+    ) {
+      return undefined;
+    }
+    return {
+      ...bookmark,
+      content: { ...bookmark.content, htmlContent: offlineHtmlContent },
+    };
+  }, [bookmark, bookmarkWithContent, offlineHtmlContent]);
 
   const { data: highlights } = useQuery(
     api.highlights.getForBookmark.queryOptions({
@@ -112,15 +170,21 @@ export function BookmarkLinkReaderPreview({
     bookmarkId: bookmark.id,
   });
 
-  if (isLoading) {
-    return <FullPageSpinner />;
+  const [viewingImage, setViewingImage] = useState<string | null>(null);
+
+  const handleLinkPress = useCallback((url: string) => {
+    openUrlExternally(url);
+  }, []);
+
+  const handleImagePress = useCallback((src: string) => {
+    setViewingImage(src);
+  }, []);
+
+  if (!displayedBookmarkWithContent) {
+    return <QueryPageState error={error} onRetry={refetch} />;
   }
 
-  if (error) {
-    return <FullPageError error={error.message} onRetry={refetch} />;
-  }
-
-  if (bookmarkWithContent?.content.type !== BookmarkTypes.LINK) {
+  if (displayedBookmarkWithContent.content.type !== BookmarkTypes.LINK) {
     throw new Error("Wrong content type rendered");
   }
 
@@ -135,6 +199,13 @@ export function BookmarkLinkReaderPreview({
 
   return (
     <View className="flex-1 bg-background">
+      <ImageView
+        visible={!!viewingImage}
+        imageIndex={0}
+        onRequestClose={() => setViewingImage(null)}
+        doubleTapToZoomEnabled={true}
+        images={viewingImage ? [{ uri: viewingImage }] : []}
+      />
       {showBanner && (
         <View className="flex-row items-center gap-2 border-b border-border bg-background px-4 py-2">
           <BookOpen size={16} className="text-muted-foreground" />
@@ -157,14 +228,17 @@ export function BookmarkLinkReaderPreview({
         </View>
       )}
       <BookmarkHtmlHighlighterDom
-        htmlContent={bookmarkWithContent.content.htmlContent ?? ""}
+        htmlContent={displayedBookmarkWithContent.content.htmlContent ?? ""}
         contentStyle={contentStyle}
+        isDark={isDark}
         highlights={highlights?.highlights ?? []}
         readingProgressOffset={readingProgressOffset}
         readingProgressAnchor={readingProgressAnchor}
         restoreReadingPosition={restorePosition}
         onSavePosition={onSavePosition}
         onScrollPositionChange={onScrollPositionChange}
+        onLinkPress={handleLinkPress}
+        onImagePress={handleImagePress}
         onHighlight={(h) =>
           createHighlight({
             startOffset: h.startOffset,
@@ -204,6 +278,22 @@ export function BookmarkLinkArchivePreview({
 
   const assetSource = useAssetUrl(asset?.id ?? "");
 
+  const originUri = assetSource.uri;
+  const onShouldStartLoadWithRequest = useCallback(
+    (request: ShouldStartLoadRequest) => {
+      // Allow loading the archive asset itself
+      if (
+        originUri &&
+        (request.url === originUri || request.url.startsWith(originUri))
+      ) {
+        return true;
+      }
+      openUrlExternally(request.url);
+      return false;
+    },
+    [originUri],
+  );
+
   if (!asset) {
     return (
       <View className="flex-1 bg-background">
@@ -216,12 +306,15 @@ export function BookmarkLinkArchivePreview({
     uri: assetSource.uri!,
     headers: assetSource.headers,
   };
+
   return (
     <WebView
       startInLoadingState={true}
       mediaPlaybackRequiresUserAction={true}
       source={webViewUri}
       decelerationRate={0.998}
+      setSupportMultipleWindows={false}
+      onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
     />
   );
 }

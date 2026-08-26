@@ -1,10 +1,12 @@
 import { Alert, Platform, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { router, Stack, useLocalSearchParams } from "expo-router";
+import { useBookmarkListLayoutMenu } from "@/components/bookmarks/BookmarkListHeader";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
-import FullPageError from "@/components/FullPageError";
+import QueryPageState from "@/components/QueryPageState";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { useArchiveFilter } from "@/lib/hooks";
+import { useColorScheme } from "@/lib/useColorScheme";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { MenuView } from "@react-native-menu/menu";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -37,9 +39,9 @@ export default function ListView() {
           ),
         }}
       />
-      {error ? (
-        <FullPageError error={error.message} onRetry={() => refetch()} />
-      ) : list && !isSettingsLoading ? (
+      {!list ? (
+        <QueryPageState error={error} onRetry={() => refetch()} />
+      ) : !isSettingsLoading ? (
         <UpdatingBookmarkList
           query={{
             listId: list.id,
@@ -61,7 +63,9 @@ function ListActionsMenu({
   role: ZBookmarkList["userRole"];
 }) {
   const api = useTRPC();
+  const { colors } = useColorScheme();
   const { menuIconColor, destructiveMenuIconColor } = useMenuIconColors();
+  const { layoutActions, handleLayoutAction } = useBookmarkListLayoutMenu();
   const { mutate: deleteList } = useMutation(
     api.lists.delete.mutationOptions({
       onSuccess: () => {
@@ -114,6 +118,7 @@ function ListActionsMenu({
   return (
     <MenuView
       actions={[
+        ...layoutActions,
         {
           id: "edit",
           title: "Edit List",
@@ -157,6 +162,10 @@ function ListActionsMenu({
         },
       ]}
       onPressAction={({ nativeEvent }) => {
+        if (handleLayoutAction(nativeEvent.event)) {
+          return;
+        }
+
         if (nativeEvent.event === "delete_list") {
           handleDelete();
         } else if (nativeEvent.event === "leave") {
@@ -167,8 +176,11 @@ function ListActionsMenu({
       }}
       shouldOpenOnLongPress={false}
     >
-      <View className="my-auto px-4">
-        <Ellipsis onPress={() => Haptics.selectionAsync()} color="gray" />
+      <View className="my-auto">
+        <Ellipsis
+          onPress={() => Haptics.selectionAsync()}
+          color={colors.foreground}
+        />
       </View>
     </MenuView>
   );

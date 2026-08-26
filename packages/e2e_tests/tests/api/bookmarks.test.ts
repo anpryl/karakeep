@@ -48,6 +48,9 @@ describe("Bookmarks API", () => {
     expect(createResponse.status).toBe(201);
     expect(createdBookmark).toBeDefined();
     expect(createdBookmark?.id).toBeDefined();
+    if (!createdBookmark) {
+      throw new Error("Bookmark creation failed");
+    }
 
     // Get the created bookmark
     const { data: retrievedBookmark, response: getResponse } = await client.GET(
@@ -66,6 +69,67 @@ describe("Bookmarks API", () => {
     expect(retrievedBookmark!.title).toBe("Test Bookmark");
     assert(retrievedBookmark!.content.type === "text");
     expect(retrievedBookmark!.content.text).toBe("This is a test bookmark");
+  });
+
+  it("should page through readable bookmark content and reject stale cursors", async () => {
+    const firstParagraph = "a".repeat(80);
+    const secondParagraph = "b".repeat(80);
+    const text = `${firstParagraph}\n\n${secondParagraph}`;
+    const { data: bookmark } = await client.POST("/bookmarks", {
+      body: {
+        type: "text",
+        text,
+      },
+    });
+
+    const { data: firstPage, response: firstResponse } = await client.GET(
+      "/bookmarks/{bookmarkId}/content",
+      {
+        params: {
+          path: { bookmarkId: bookmark!.id },
+          query: { maxChars: 100 },
+        },
+      },
+    );
+
+    expect(firstResponse.status).toBe(200);
+    expect(firstPage?.format).toBe("markdown");
+    expect(firstPage?.content).toBe(`${firstParagraph}\n\n`);
+    expect(firstPage?.range).toEqual({ start: 0, end: 82, total: 162 });
+    expect(firstPage?.nextCursor).not.toBeNull();
+
+    const { data: secondPage } = await client.GET(
+      "/bookmarks/{bookmarkId}/content",
+      {
+        params: {
+          path: { bookmarkId: bookmark!.id },
+          query: {
+            maxChars: 100,
+            cursor: firstPage!.nextCursor!,
+          },
+        },
+      },
+    );
+    expect(firstPage!.content + secondPage!.content).toBe(text);
+    expect(secondPage?.nextCursor).toBeNull();
+
+    await client.PATCH("/bookmarks/{bookmarkId}", {
+      params: { path: { bookmarkId: bookmark!.id } },
+      body: { text: `${text}\nchanged` },
+    });
+    const { response: staleResponse, error } = await client.GET(
+      "/bookmarks/{bookmarkId}/content",
+      {
+        params: {
+          path: { bookmarkId: bookmark!.id },
+          query: {
+            cursor: firstPage!.nextCursor!,
+          },
+        },
+      },
+    );
+    expect(staleResponse.status).toBe(409);
+    expect(error).toEqual(expect.objectContaining({ code: "CONTENT_CHANGED" }));
   });
 
   it("should update a bookmark", async () => {
@@ -544,7 +608,7 @@ describe("Bookmarks API", () => {
   });
 
   describe("singlefile", () => {
-    async function uploadSinglefileAsset(ifexists?: string) {
+    async function uploadSinglefileAsset(ifexists?: string, key = apiKey) {
       const file = new File(["<html>HELLO WORLD</html>"], "test.html", {
         type: "text/html",
       });
@@ -563,7 +627,7 @@ describe("Bookmarks API", () => {
       const response = await fetch(url.toString(), {
         method: "POST",
         headers: {
-          authorization: `Bearer ${apiKey}`,
+          authorization: `Bearer ${key}`,
         },
         body: formData,
       });
@@ -575,6 +639,12 @@ describe("Bookmarks API", () => {
       const data = (await response.json()) as { id: string };
       return [data, response] as const;
     }
+
+    it("should require assets:readwrite to upload singlefile assets", async () => {
+      const scopedApiKey = await createTestUser(["bookmarks:readwrite"]);
+      const [, response] = await uploadSinglefileAsset(undefined, scopedApiKey);
+      expect(response.status).toBe(403);
+    });
 
     it("should support precrawling via singlefile with ifexists=skip", async () => {
       // First upload: create a bookmark

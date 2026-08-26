@@ -10,7 +10,7 @@
       "create_user": "Kreiraj korisnika",
       "change_role": "Promijeni ulogu",
       "asset_sizes": "Veličine resursa",
-      "delete_user_confirm_description": "Jesi ziher da želiš izbrisati korisnika \"{{name}}\"?",
+      "delete_user_confirm_description": "Jesi siguran da želiš izbrisati korisnika \"{{name}}\"?",
       "unlimited": "Neograničeno"
     },
     "admin_settings": "Postavke administratora",
@@ -70,9 +70,13 @@
         "admin_maintenance": {
           "title": "Poslovi održavanja administratora",
           "description": "Administrativno čišćenje i održavanje imovine"
+        },
+        "embeddings": {
+          "title": "Zadaci ugradnje",
+          "description": "Generiranje vektorskih ugradnji oznaka"
         }
       },
-      "monitor_and_manage": "Pratite i upravljajte redovima pozadinskih poslova i zadacima obrade sustava",
+      "monitor_and_manage": "Prati i upravljaj redovima pozadinskih poslova i zadacima obrade sustava",
       "active": "Aktivan",
       "available_actions": "Dostupne radnje",
       "status": {
@@ -83,7 +87,7 @@
         },
         "unprocessed": {
           "title": "Neobrađeno",
-          "description": "Oznake koje još nisu obrađene. Najvjerojatnije su već u redu čekanja za obradu, ako ne, možda ćete ih morati ručno ponovno staviti u red čekanja."
+          "description": "Oznake koje još nisu obrađene. Najvjerojatnije su već u redu čekanja za obradu, ako ne, možda ćeš ih morati ručno ponovno staviti u red čekanja."
         },
         "failed": {
           "title": "Neuspjelo",
@@ -104,7 +108,10 @@
         "migrate_large_link_html_content": "Premjesti veliki Inline HTML sadržaj u resurse",
         "recrawl_pending_links_only": "Ponovno indeksiraj samo poveznice na čekanju",
         "regenerate_ai_tags_for_pending_bookmarks_only": "Generiraj AI oznake samo za knjižne oznake na čekanju",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "Generiraj AI sažetke samo za knjižne oznake na čekanju"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Generiraj AI sažetke samo za knjižne oznake na čekanju",
+        "regenerate_embeddings_for_pending_bookmarks_only": "Ponovno generiraj ugradnje samo za oznake na čekanju",
+        "regenerate_embeddings_for_failed_bookmarks_only": "Ponovno generiraj ugradnje samo za neuspjele oznake",
+        "regenerate_embeddings_for_all_bookmarks": "Ponovno generiraj ugradnje za sve oznake"
       }
     },
     "actions": {
@@ -129,7 +136,8 @@
         "not_configured": "Nije konfigurirano",
         "connected": "Spojeno",
         "disconnected": "Odspojeno"
-      }
+      },
+      "vector_store": "Vektorska pohrana"
     },
     "admin_tools": {
       "admin_tools": "Admin Alati",
@@ -165,7 +173,10 @@
       "retag_queued": "Posao ponovnog označavanja je u redu čekanja",
       "resummarize_queued": "Posao ponovnog sažimanja je u redu čekanja",
       "view": "Prikaži",
-      "fetch_error": "Greška pri dohvaćanju oznake"
+      "fetch_error": "Greška pri dohvaćanju oznake",
+      "embedding_status": "Status ugradnje",
+      "regenerate_embedding": "Ponovno generiraj ugradnju",
+      "regenerate_embedding_queued": "Zadatak ponovnog generiranja ugradnje stavljen je u red čekanja"
     }
   },
   "layouts": {
@@ -223,7 +234,7 @@
   "settings": {
     "ai": {
       "tagging_rules": "Pravila označavanja",
-      "tagging_rule_description": "Upiti koje ovdje dodate bit će uključeni kao pravila modelu tijekom generiranja oznaka. Konačne upite možete pregledati u odjeljku za pregled upita.",
+      "tagging_rule_description": "Upiti koje ovdje dodaš bit će uključeni kao pravila modelu tijekom generiranja oznaka. Konačne upite možeš pregledati u odjeljku za pregled upita.",
       "ai_settings": "AI Postavke",
       "prompt_preview": "Pregled upita",
       "images_prompt": "Vizualni upit",
@@ -266,7 +277,9 @@
       "import_bookmarks_from_omnivore_export": "Import oznaka iz Omnivore exporta",
       "import_bookmarks_from_tab_session_manager_export": "Uvezi oznake iz Tab Session Managera",
       "import_bookmarks_from_mymind_export": "Uvezi oznake iz mymind izvoza",
-      "import_bookmarks_from_instapaper_export": "Uvezi oznake iz eksporta Instapaper računa"
+      "import_bookmarks_from_instapaper_export": "Uvezi oznake iz eksporta Instapaper računa",
+      "import_bookmarks_from_readwise_reader_export": "Uvezite oznake iz Readwise Reader izvoza",
+      "import_bookmarks_from_onetab_export": "Uvezite oznake iz OneTab izvoza"
     },
     "back_to_app": "Povratak u aplikaciju",
     "user_settings": "Postavke korisnika",
@@ -322,7 +335,7 @@
         "save_to_device": "Ovaj uređaj",
         "sans": "Sans Serif",
         "tooltip_preview_and_local": "Nespremljene promjene pregleda; postavke uređaja razlikuju se od globalnih",
-        "adjust_hint": "Prilagodite postavke iznad za pregled promjena"
+        "adjust_hint": "Prilagodi postavke iznad za pregled promjena"
       },
       "avatar": {
         "upload": "Učitaj avatar",
@@ -339,14 +352,108 @@
     "api_keys": {
       "api_keys": "API ključevi",
       "new_api_key": "Novi API ključ",
-      "new_api_key_desc": "Dajte svom API ključu jedinstveno ime",
+      "new_api_key_desc": "Daj svom API ključu jedinstveno ime",
       "key_success": "Ključ je uspješno kreiran",
-      "key_success_please_copy": "Molimo kopirajte ključ i saćuvajte ga na sigurnom mjestu. Nakon što zatvorite dijalog, više ga nećete moći ponovo pristupiti.",
+      "key_success_please_copy": "Molimo kopiraj ključ i spremi ga na sigurno mjesto. Nakon što zatvoriš dijalog, više mu nećeš moći ponovno pristupiti.",
       "regenerate_api_key": "Ponovo stvori API ključ",
       "key_regenerated": "Ključ je uspješno ponovo stvoren",
       "key_regenerated_please_copy": "Kopiraj novi ključ i spremi ga na sigurno mjesto. Stari ključ je povučen i više neće raditi.",
       "regenerate_warning": "Jesi li siguran da želiš ponovo stvoriti API ključ \"{{name}}\"?",
-      "regenerate_confirmation": "Ovo će povući trenutni ključ i stvoriti novi. Sve aplikacije koje koriste trenutni ključ prestat će raditi."
+      "regenerate_confirmation": "Ovo će povući trenutni ključ i stvoriti novi. Sve aplikacije koje koriste trenutni ključ prestat će raditi.",
+      "scopes": {
+        "scopes": "Opsezi",
+        "choose_at_least_one": "Odaberite barem jedan opseg ili odaberite puni pristup.",
+        "scope_details": "{{scope}} detalji opsega",
+        "access": {
+          "none": "Nijedan",
+          "read": "Čitanje",
+          "readwrite": "Čitanje/pisanje"
+        },
+        "full_access": {
+          "label": "Puni pristup",
+          "description": "Pristup svim podržanim API operacijama."
+        },
+        "limited_scopes": {
+          "label": "Ograničeni opsezi",
+          "description": "Odaberite vrste resursa kojima ovaj ključ može pristupiti."
+        },
+        "resources": {
+          "assets": {
+            "label": "Sredstva",
+            "description": "Pristup datotekama i drugom pohranjenom sadržaju knjižnica."
+          },
+          "backups": {
+            "label": "Sigurnosne kopije",
+            "description": "Upravljanje sigurnosnim kopijama računa."
+          },
+          "bookmarks": {
+            "label": "Knjižnice",
+            "description": "Pristup i upravljanje knjižnicama."
+          },
+          "feeds": {
+            "label": "Sažeci",
+            "description": "Upravljanje RSS sažecima i povezanim podacima sažetaka."
+          },
+          "highlights": {
+            "label": "Istaknuto",
+            "description": "Upravljanje spremljenim istaknutim dijelovima knjižnica."
+          },
+          "lists": {
+            "label": "Popisi",
+            "description": "Upravljajte popisima i članstvom u popisima."
+          },
+          "prompts": {
+            "label": "Upiti",
+            "description": "Upravljajte spremljenim konfiguracijama AI upita."
+          },
+          "rules": {
+            "label": "Pravila",
+            "description": "Pristupite pravilima automatizacije."
+          },
+          "tags": {
+            "label": "Oznake",
+            "description": "Pristupite i mijenjajte oznake."
+          },
+          "users": {
+            "label": "Korisnički račun",
+            "description": "Pristupite profilu i postavkama računa."
+          },
+          "webhooks": {
+            "label": "Web-kuke",
+            "description": "Pristupite konfiguraciji web-kuka."
+          },
+          "subscriptions": {
+            "label": "Pretplate",
+            "description": "Pristupite upravljanju pretplatama."
+          },
+          "importSessions": {
+            "label": "Sesije uvoza",
+            "description": "Pristupite sesijama uvoza."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Admin: oznake",
+            "description": "Pristupite administrativnim alatima za oznake."
+          },
+          "jobs": {
+            "label": "Admin: poslovi",
+            "description": "Pristupite kontrolama pozadinskih poslova."
+          },
+          "system": {
+            "label": "Admin: sustav",
+            "description": "Pristup statusu sustava i dijagnostici."
+          },
+          "users": {
+            "label": "Admin: korisnici",
+            "description": "Pristup administrativnom upravljanju korisnicima."
+          },
+          "subscriptions": {
+            "label": "Administrator: pretplate",
+            "description": "Upravljanje razinama korisničkih pretplata."
+          }
+        }
+      }
     },
     "broken_links": {
       "broken_links": "Pokidane veze",
@@ -364,7 +471,7 @@
       "edit_webhook": "Uredi Webhook",
       "webhook_url": "Webhook URL",
       "webhooks": "Web-dojave",
-      "description": "Možete koristiti web-dojave za pokretanje radnji kada se stvaraju, mijenjaju ili indeksiraju oznake.",
+      "description": "Možeš koristiti web-dojave za pokretanje radnji kada se stvaraju, mijenjaju ili indeksiraju oznake.",
       "events": {
         "title": "Događaji",
         "crawled": "Puzano",
@@ -401,7 +508,8 @@
         "is_favourited": "Je li označeno kao omiljeno",
         "url_does_not_contain": "URL ne sadrži",
         "title_contains": "Naslov sadrži",
-        "title_does_not_contain": "Naslov ne sadrži"
+        "title_does_not_contain": "Naslov ne sadrži",
+        "bookmark_source_is": "Izvor knjižne oznake je"
       },
       "actions_types": {
         "add_tag": "Dodaj oznaku",
@@ -427,10 +535,10 @@
       "edit_rule": "Uredi pravilo",
       "save_rule": "Spremi pravilo",
       "delete_rule": "Izbriši pravilo",
-      "delete_rule_confirmation": "Jesi ziher da želiš izbrisati ovo pravilo?",
+      "delete_rule_confirmation": "Jesi siguran da želiš izbrisati ovo pravilo?",
       "whenever": "Kad god ...",
       "if": "Ako ...",
-      "enter_rule_name": "Unesite naziv pravila",
+      "enter_rule_name": "Unesi naziv pravila",
       "describe_what_this_rule_does": "Opiši što ovo pravilo radi",
       "rule_has_been_created": "Pravilo je stvoreno!",
       "rule_has_been_updated": "Pravilo je ažurirano!",
@@ -511,7 +619,17 @@
       "approaching_quota_limit": "Približavam se granici kvote",
       "loading_usage": "Učitavam informacije o korištenju...",
       "free": "Besplatno",
-      "paid": "Plaćeno"
+      "paid": "Plaćeno",
+      "monthly": "Mjesečno",
+      "yearly": "Godišnje",
+      "per_month": "mjesec",
+      "per_year": "godina",
+      "excl_vat": "bez PDV-a",
+      "yearly_savings": "Uštedite {{percent}}%",
+      "pro_feature_bookmarks": "50.000 oznaka",
+      "pro_feature_storage": "50 GB prostora",
+      "pro_feature_ai_tagging": "Označavanje pomoću umjetne inteligencije",
+      "pro_feature_full_text_search": "Pretraživanje cijelog teksta"
     },
     "import_sessions": {
       "title": "Uvoz sesija",
@@ -529,7 +647,8 @@
         "processing": "Obrada",
         "staging": "Priprema",
         "running": "U tijeku",
-        "paused": "Pauzirano"
+        "paused": "Pauzirano",
+        "archived": "Arhivirano"
       },
       "badges": {
         "pending": "{{count}} na čekanju",
@@ -538,9 +657,9 @@
         "failed": "{{count}} neuspjelo"
       },
       "imported_to": "Uvezeno u:",
-      "view_list": "Vidite popis",
+      "view_list": "Pogledaj popis",
       "delete_dialog_title": "Izbriši sesiju uvoza",
-      "delete_dialog_description": "Jesi li ziher da želiš izbrisati \"{{name}}\"? Ne možeš to poništiti. Same oznake neće biti izbrisane.",
+      "delete_dialog_description": "Jesi li siguran da želiš izbrisati \"{{name}}\"? Ne možeš to poništiti. Same oznake neće biti izbrisane.",
       "delete_session": "Izbriši sesiju",
       "pause_session": "Pauziraj",
       "resume_session": "Nastavi",
@@ -566,8 +685,12 @@
         "no_results": "Nema rezultata za ovaj filtar.",
         "view_bookmark": "Pogledaj oznaku",
         "load_more": "Učitaj više",
-        "no_title": "Bez naslova"
-      }
+        "no_title": "Bez naslova",
+        "archived_results": "Pojedinačni rezultati knjižnih oznaka više se ne pohranjuju za arhivirane sesije uvoza."
+      },
+      "finalize_dialog_title": "Dovrši sesiju uvoza",
+      "finalize_dialog_description": "Staviti „{{name}}“ u red čekanja za pozadinsku obradu? Pripremljene oznake počet će se uvoziti.",
+      "finalize_staging": "Dovrši"
     },
     "backups": {
       "backups": "Sigurnosne kopije",
@@ -672,10 +795,11 @@
     "more": "Više",
     "replace_banner": "Zamijeni banner",
     "add_banner": "Dodaj banner",
-    "download": "Preuzmi"
+    "download": "Preuzmi",
+    "rename": "Preimenuj"
   },
   "highlights": {
-    "no_highlights": "Još nemate nijednu istaknutu stavku."
+    "no_highlights": "Još nemaš nijednu istaknutu stavku."
   },
   "options": {
     "dark_mode": "Dark Mode",
@@ -693,7 +817,7 @@
     "manual_list": "Ručni popis",
     "smart_list": "Pametni popis",
     "search_query": "Upit za pretraživanje",
-    "search_query_help": "Saznajte više o jeziku upita za pretraživanje.",
+    "search_query_help": "Saznaj više o jeziku upita za pretraživanje.",
     "parent_list": "Lista roditelja",
     "no_parent": "Nema roditelja",
     "list_type": "Vrsta popisa",
@@ -768,7 +892,18 @@
       "failed_to_accept": "Nije uspjelo prihvatiti pozivnicu",
       "failed_to_decline": "Nije uspjelo odbiti pozivnicu"
     },
-    "shared_lists": "Zajednički popisi"
+    "shared_lists": "Zajednički popisi",
+    "privacy": {
+      "public": "Javno",
+      "shared": "Podijeljeno",
+      "private": "Privatno"
+    },
+    "summary_list_one": "{{count}} Popisi",
+    "summary_list_other": "{{count}} Popisi",
+    "summary_bookmark_one": "{{count}} Oznake",
+    "summary_bookmark_other": "{{count}} Oznake",
+    "items_count_one": "{{count}} stavki",
+    "items_count_other": "{{count}} stavki"
   },
   "tags": {
     "all_tags": "Sve oznake",
@@ -777,8 +912,8 @@
     "ai_tags": "AI oznake",
     "ai_tags_info": "Oznake koje su bile priložene samo automatski (od AI-a)",
     "unused_tags": "Nekorištene oznake",
-    "drag_and_drop_merging": "Spajanje priko drag & drop",
-    "drag_and_drop_merging_info": "Drag and drop oznake jedna na drugu kako biste ih spojili",
+    "drag_and_drop_merging": "Spajanje povlačenjem i ispuštanjem",
+    "drag_and_drop_merging_info": "Povuci i ispusti oznake jednu na drugu kako bi ih spojio",
     "sort_by_name": "Sortiraj po imenu",
     "delete_all_unused_tags": "Izbriši sve neiskorištene oznake",
     "unused_tags_info": "Oznake koje nisu priložene nijednoj oznaci",
@@ -794,7 +929,11 @@
     "no_unused_tags_match_your_search": "Nijedna neiskorištena oznaka ne odgovara pretrazi",
     "no_tags_match_your_search": "Nijedna oznaka ne odgovara pretrazi",
     "search_placeholder": "Pretraži oznake...",
-    "search_or_create_placeholder": "Pretraži ili stvori oznake..."
+    "search_or_create_placeholder": "Pretraži ili stvori oznake...",
+    "rename_tag": "Preimenuj oznaku",
+    "items_count": "{{count}} stavki",
+    "attached_by_you": "{{count}} od vas",
+    "attached_by_ai": "{{count}} od strane AI"
   },
   "preview": {
     "view_original": "Pogledaj orginal",
@@ -804,7 +943,7 @@
       "content": "Sadržaj",
       "details": "Detalji"
     },
-    "archive_info": "Arhive se možda neće ispravno prikazati inline ako zahtijevaju Javascript. Za najbolje rezultate, <1>preuzmite ih i otvorite u svom pregledniku</1>.",
+    "archive_info": "Arhive se možda neće ispravno prikazati inline ako zahtijevaju Javascript. Za najbolje rezultate, <1>preuzmi ih i otvori u svom pregledniku</1>.",
     "fetch_error_title": "Sadržaj nije dostupan",
     "fetch_error_description": "Nismo uspjeli dohvatiti sadržaj za ovu poveznicu. Stranica je možda zaštićena, zahtijeva autentifikaciju ili je privremeno nedostupna.",
     "crawling_in_progress": "Dohvaćam sadržaj stranice…",
@@ -813,12 +952,12 @@
     "continue_button": "Nastavi"
   },
   "editor": {
-    "quickly_focus": "Možete brzo fokusirati ovo polje pritiskanjem ⌘ + E",
+    "quickly_focus": "Možeš brzo fokusirati ovo polje pritiskanjem ⌘ + E",
     "import_as_text": "Uvoz kao tekstualnu oznaku",
     "import_as_separate_bookmarks": "Uvoz kao odvojene oznake",
     "multiple_urls_dialog_title": "Uvoz URL-ova kao odvojene oznake?",
-    "multiple_urls_dialog_desc": "Unos sadrži više URL-ova na odvojenim redovima. Želite li ih uvesti kao odvojene oznake?",
-    "placeholder": "Zalijepite vezu ili sliku, napišite bilješku ili povucite i ispustite sliku ovdje...",
+    "multiple_urls_dialog_desc": "Unos sadrži više URL-ova na odvojenim redovima. Želiš li ih uvesti kao odvojene oznake?",
+    "placeholder": "Zalijepi vezu ili sliku, napiši bilješku ili povuci i ispusti sliku ovdje...",
     "new_item": "NOVI ITEM",
     "disabled_submissions": "Podnošenja su onemogućena",
     "text_toolbar": {
@@ -878,7 +1017,7 @@
       "refetch": "Ponovno preuzimanje je stavljeno u čekanje!",
       "full_page_archive": "Pokrenuto je stvaranje potpune arhive stranice",
       "delete_from_list": "Oznaka je izbrisana s popisa",
-      "clipboard_copied": "Veza je dodana u vaš međuspremnik!",
+      "clipboard_copied": "Veza je dodana u tvoj međuspremnik!",
       "preserve_pdf": "Spremanje u PDF formatu je pokrenuto",
       "update_banner": "Banner je ažuriran!",
       "uploading_banner": "Učitavanje bannera..."
@@ -891,7 +1030,9 @@
     },
     "tags": {
       "created": "Oznaka je kreirana!",
-      "failed_to_create": "Nije uspjelo kreiranje oznake"
+      "failed_to_create": "Nije uspjelo kreiranje oznake",
+      "updated": "Oznaka je ažurirana!",
+      "failed_to_update": "Ažuriranje oznake nije uspjelo"
     }
   },
   "cleanups": {
@@ -948,12 +1089,24 @@
     "lists": "Popisi",
     "feeds": "Kanali",
     "is_from_source": "Izvor je",
-    "is_not_from_source": "Izvor nije"
+    "is_not_from_source": "Izvor nije",
+    "mode_label": "Način pretraživanja",
+    "mode_label_description": "Odaberite kako Karakeep pronalazi podudarne knjižne oznake.",
+    "mode_keyword": "Ključna riječ",
+    "mode_keyword_description": "Podudaranje točnih riječi u naslovima, sadržaju, URL-ovima i bilješkama. Gotovo trenutno.",
+    "mode_hybrid": "Hibridno",
+    "mode_hybrid_description": "Kombinirajte točna podudaranja s povezanim idejama za najbolju ravnotežu. Sporije od pretraživanja po ključnim riječima.",
+    "mode_semantic": "Semantičko",
+    "mode_semantic_description": "Pronađite konceptualno slične knjižne oznake, čak i bez zajedničkih riječi. Sporije od pretraživanja po ključnim riječima.",
+    "keyword_placeholder": "Pretraži naslove, tekst, URL-ove i oznake…",
+    "hybrid_placeholder": "Pretraži po riječima ili značenju…",
+    "semantic_placeholder": "Opišite čega se sjećate…"
   },
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "Izbrisati oznaku?",
-      "delete_confirmation_description": "Jesi ziher da želiš izbrisati ovaj bookmark?"
+      "delete_confirmation_description": "Jesi siguran da želiš izbrisati ovu oznaku?",
+      "bulk_delete_confirmation_description": "Jeste li sigurni da želite obrisati {{count}} oznaka?"
     }
   },
   "banners": {
@@ -999,7 +1152,7 @@
     "subtitle": "Godina u Karakeepu",
     "banner": {
       "title": "Tvoj 2025 sažetak je spreman!",
-      "description": "Pogledajte svoju godinu u oznakama",
+      "description": "Pogledaj svoju godinu u oznakama",
       "view_now": "Pogledaj sada"
     },
     "button": "2025 Sažetak",
@@ -1042,5 +1195,28 @@
     "download": "Preuzmi",
     "close": "Zatvori",
     "generating": "Generiram..."
+  },
+  "keyboard_shortcuts": {
+    "title": "Prečice na tipkovnici",
+    "sections": {
+      "navigation": "Navigacija",
+      "actions": "Radnje",
+      "selection": "Odabir",
+      "other": "Ostalo"
+    },
+    "move_left": "Pomakni lijevo",
+    "move_down": "Pomakni dolje",
+    "move_up": "Pomakni gore",
+    "move_right": "Pomakni desno",
+    "open_bookmark": "Otvori oznaku",
+    "clear_focus": "Ukloni fokus / izađi iz grupnog uređivanja",
+    "toggle_favorite": "Označi kao omiljeno / ukloni iz omiljenih",
+    "toggle_archive": "Arhiviraj / vrati iz arhive",
+    "delete_bookmark": "Obriši oznaku",
+    "toggle_selection": "Uključi/isključi odabir",
+    "select_all": "Odaberi sve",
+    "deselect_all": "Poništi odabir",
+    "show_help": "Prikaži prečice na tipkovnici",
+    "focus_search_alt": "Fokusiraj pretraživanje"
   }
 }

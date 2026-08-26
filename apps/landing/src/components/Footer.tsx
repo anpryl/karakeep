@@ -1,5 +1,3 @@
-import { Link } from "react-router";
-
 import { DOCS_LINK, GITHUB_LINK } from "../constants";
 import Logo from "/icons/karakeep-full.svg?url";
 
@@ -31,7 +29,7 @@ export default function Footer() {
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <img src={Logo} alt="Karakeep" className="w-32" />
+            <img src={Logo} alt="Karakeep" className="w-32" loading="lazy" />
             <p className="mt-3 text-sm text-gray-500">
               The Bookmark Everything App. Save, organize, and rediscover your
               content.
@@ -47,23 +45,15 @@ export default function Footer() {
               <ul className="space-y-2">
                 {links.map((link) => (
                   <li key={link.label}>
-                    {"internal" in link && link.internal ? (
-                      <Link
-                        to={link.href}
-                        className="text-sm text-gray-500 transition-colors hover:text-gray-900"
-                      >
-                        {link.label}
-                      </Link>
-                    ) : (
-                      <a
-                        href={link.href}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-sm text-gray-500 transition-colors hover:text-gray-900"
-                      >
-                        {link.label}
-                      </a>
-                    )}
+                    <a
+                      href={link.href}
+                      {...("internal" in link && link.internal
+                        ? {}
+                        : { target: "_blank", rel: "noreferrer" })}
+                      className="text-sm text-gray-500 transition-colors hover:text-gray-900"
+                    >
+                      {link.label}
+                    </a>
                   </li>
                 ))}
               </ul>

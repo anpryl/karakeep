@@ -115,6 +115,10 @@
         "admin_maintenance": {
           "title": "Admin-vedlikeholdsjobber",
           "description": "Administrativ opprydding og ressursvedlikehold"
+        },
+        "embeddings": {
+          "title": "Innbeddingsjobber",
+          "description": "Generering av vektorinnbedding for bokmerker"
         }
       },
       "monitor_and_manage": "Overvåk og administrer bakgrunnsjobbkøer og systembehandlingsoppgaver",
@@ -138,7 +142,7 @@
       "actions": {
         "recrawl_failed_links_only": "Gjennomgå bare mislykkede lenker på nytt",
         "recrawl_all_links": "Gjennomgå alle lenker på nytt",
-        "without_inference": "Uten Inferences",
+        "without_inference": "Uten inferens",
         "regenerate_ai_tags_for_failed_bookmarks_only": "Gjenskap AI-tagger bare for mislykkede bokmerker",
         "regenerate_ai_tags_for_all_bookmarks": "Gjenskap AI-tagger for alle bokmerker",
         "regenerate_ai_summaries_for_failed_bookmarks_only": "Gjenskap AI-sammendrag bare for mislykkede bokmerker",
@@ -149,7 +153,10 @@
         "migrate_large_link_html_content": "Flytt stort HTML-innhold på nettet til aktiva",
         "recrawl_pending_links_only": "Bare skann ventende lenker på nytt",
         "regenerate_ai_tags_for_pending_bookmarks_only": "Bare gjenopprett AI-tagger for ventende bokmerker",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "Bare gjenopprett AI-sammendrag for ventende bokmerker"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Bare gjenopprett AI-sammendrag for ventende bokmerker",
+        "regenerate_embeddings_for_pending_bookmarks_only": "Regenerer innbeddinger kun for ventende bokmerker",
+        "regenerate_embeddings_for_failed_bookmarks_only": "Regenerer innbeddinger kun for feilede bokmerker",
+        "regenerate_embeddings_for_all_bookmarks": "Regenerer innbeddinger for alle bokmerker"
       }
     },
     "actions": {
@@ -175,7 +182,8 @@
         "not_configured": "Ikke konfigurert",
         "connected": "Tilkoblet",
         "disconnected": "Frakoblet"
-      }
+      },
+      "vector_store": "Vektorlager"
     },
     "admin_tools": {
       "admin_tools": "Admin-verktøy",
@@ -211,7 +219,10 @@
       "retag_queued": "Retaggingsjobb er lagt i kø",
       "resummarize_queued": "Oppsummeringsjobb er lagt i kø",
       "view": "Visning",
-      "fetch_error": "Feil ved henting av bokmerke"
+      "fetch_error": "Feil ved henting av bokmerke",
+      "embedding_status": "Innbeddingsstatus",
+      "regenerate_embedding": "Regenerer innbedding",
+      "regenerate_embedding_queued": "Jobb for regenerering av innbedding er lagt i kø"
     }
   },
   "actions": {
@@ -267,7 +278,8 @@
     "more": "Mer",
     "replace_banner": "Erstatt banner",
     "add_banner": "Legg til banner",
-    "download": "Last ned"
+    "download": "Last ned",
+    "rename": "Gi nytt navn"
   },
   "settings": {
     "info": {
@@ -380,8 +392,10 @@
       "export_links_and_notes": "Eksporter lenker og notater",
       "imported_bookmarks": "Importerte bokmerker",
       "import_bookmarks_from_tab_session_manager_export": "Importer bokmerker fra Tab Session Manager",
-      "import_bookmarks_from_mymind_export": "Importer bokmerker fra mymind-eksporten min",
-      "import_bookmarks_from_instapaper_export": "Importer bokmerker fra Instapaper-eksport"
+      "import_bookmarks_from_mymind_export": "Importer bokmerker fra mymind-eksport",
+      "import_bookmarks_from_instapaper_export": "Importer bokmerker fra Instapaper-eksport",
+      "import_bookmarks_from_readwise_reader_export": "Importer bokmerker fra Readwise Reader-eksport",
+      "import_bookmarks_from_onetab_export": "Importer bokmerker fra OneTab-eksport"
     },
     "api_keys": {
       "new_api_key": "Ny API-nøkkel",
@@ -393,7 +407,101 @@
       "key_regenerated": "Nøkkelen ble regenerert",
       "key_regenerated_please_copy": "Kopier den nye nøkkelen og oppbevar den på et trygt sted. Den gamle nøkkelen er trukket tilbake og vil ikke lenger fungere.",
       "regenerate_warning": "Er du sikker på at du vil regenerere API-nøkkelen \"{{name}}\"?",
-      "regenerate_confirmation": "Dette vil tilbakekalle den nåværende nøkkelen og generere en ny. Alle applikasjoner som bruker den nåværende nøkkelen, slutter å virke."
+      "regenerate_confirmation": "Dette vil tilbakekalle den nåværende nøkkelen og generere en ny. Alle applikasjoner som bruker den nåværende nøkkelen, slutter å virke.",
+      "scopes": {
+        "scopes": "Omfang",
+        "choose_at_least_one": "Velg minst ett omfang eller velg full tilgang.",
+        "scope_details": "{{scope}} detaljer om omfang",
+        "access": {
+          "none": "Ingen",
+          "read": "Lese",
+          "readwrite": "Lese/skrive"
+        },
+        "full_access": {
+          "label": "Full tilgang",
+          "description": "Få tilgang til alle støttede API-operasjoner."
+        },
+        "limited_scopes": {
+          "label": "Begrensede omfang",
+          "description": "Velg ressurstypene denne nøkkelen kan få tilgang til."
+        },
+        "resources": {
+          "assets": {
+            "label": "Ressurser",
+            "description": "Få tilgang til filer og annet lagret bokmerkeinnhold."
+          },
+          "backups": {
+            "label": "Sikkerhetskopier",
+            "description": "Administrer kontosikkerhetskopier."
+          },
+          "bookmarks": {
+            "label": "Bokmerker",
+            "description": "Få tilgang til og administrer bokmerker."
+          },
+          "feeds": {
+            "label": "Feeder",
+            "description": "Administrer RSS-feeder og relaterte feed-data."
+          },
+          "highlights": {
+            "label": "Uthevinger",
+            "description": "Administrer lagrede bokmerkeuthevinger."
+          },
+          "lists": {
+            "label": "Lister",
+            "description": "Administrer lister og medlemskap i lister."
+          },
+          "prompts": {
+            "label": "Prompter",
+            "description": "Administrer lagrede konfigurasjoner for AI-prompter."
+          },
+          "rules": {
+            "label": "Regler",
+            "description": "Få tilgang til automatiseringsregler."
+          },
+          "tags": {
+            "label": "Tagger",
+            "description": "Få tilgang til og endre tagger."
+          },
+          "users": {
+            "label": "Brukerkonto",
+            "description": "Få tilgang til kontoprofil og innstillinger."
+          },
+          "webhooks": {
+            "label": "Webhooks",
+            "description": "Få tilgang til webhook-konfigurasjon."
+          },
+          "subscriptions": {
+            "label": "Abonnementer",
+            "description": "Få tilgang til administrasjon av abonnementer."
+          },
+          "importSessions": {
+            "label": "Importøkter",
+            "description": "Få tilgang til importøkter."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Admin: bokmerker",
+            "description": "Få tilgang til administrative bokmerke-verktøy."
+          },
+          "jobs": {
+            "label": "Admin: jobber",
+            "description": "Få tilgang til kontroller for bakgrunnsjobber."
+          },
+          "system": {
+            "label": "Admin: system",
+            "description": "Få tilgang til systemstatus og diagnostikk."
+          },
+          "users": {
+            "label": "Admin: brukere",
+            "description": "Få tilgang til administrativ brukerbehandling."
+          },
+          "subscriptions": {
+            "label": "Admin: abonnementer",
+            "description": "Administrer abonnementnivåer for brukere."
+          }
+        }
+      }
     },
     "webhooks": {
       "edit_webhook": "Rediger Webhook",
@@ -425,7 +533,7 @@
       "broken_links": "Ødelagte lenker",
       "last_crawled_at": "Sist crawlet på",
       "crawling_status": "Gjennomsøkingsstatus",
-      "crawling_failed": "Kryping feilet"
+      "crawling_failed": "Gjennomsøking feilet"
     },
     "manage_assets": {
       "bookmark_link": "Bokmerke-lenke",
@@ -452,7 +560,8 @@
         "has_tag": "Har tagg",
         "url_does_not_contain": "URL-en inneholder ikke",
         "title_contains": "Tittelen inneholder",
-        "title_does_not_contain": "Tittelen inneholder ikke"
+        "title_does_not_contain": "Tittelen inneholder ikke",
+        "bookmark_source_is": "Bokmerkekilden er"
       },
       "if": "Hvis ...",
       "enter_rule_name": "Skriv inn regelnavn",
@@ -560,7 +669,17 @@
       "approaching_quota_limit": "Nærmer seg kvotegrensen",
       "loading_usage": "Laster inn bruksinformasjon …",
       "free": "Gratis",
-      "paid": "Betalt"
+      "paid": "Betalt",
+      "monthly": "Månedlig",
+      "yearly": "Årlig",
+      "per_month": "måned",
+      "per_year": "år",
+      "excl_vat": "ekskl. mva.",
+      "yearly_savings": "Spar {{percent}}%",
+      "pro_feature_bookmarks": "50 000 bokmerker",
+      "pro_feature_storage": "50 GB lagring",
+      "pro_feature_ai_tagging": "AI-drevet tagging",
+      "pro_feature_full_text_search": "Fulltekstsøk"
     },
     "import_sessions": {
       "title": "Importer sesjoner",
@@ -578,7 +697,8 @@
         "processing": "Behandler",
         "staging": "Staging",
         "running": "Kjører",
-        "paused": "Pause"
+        "paused": "Pause",
+        "archived": "Arkivert"
       },
       "badges": {
         "pending": "{{count}} venter",
@@ -615,8 +735,12 @@
         "no_results": "Fant ingen resultater for dette filteret.",
         "view_bookmark": "Vis bokmerke",
         "load_more": "Last mer",
-        "no_title": "Ingen tittel"
-      }
+        "no_title": "Ingen tittel",
+        "archived_results": "Individuelle bokmerkeresultater beholdes ikke lenger for arkiverte importøkter."
+      },
+      "finalize_dialog_title": "Fullfør importøkt",
+      "finalize_dialog_description": "Legge «{{name}}» i kø for bakgrunnsbehandling? Klargjorte bokmerker vil begynne å importeres.",
+      "finalize_staging": "Fullfør"
     },
     "backups": {
       "backups": "Sikkerhetskopieringer",
@@ -759,7 +883,18 @@
       "failed_to_accept": "Kunne ikke akseptere invitasjonen",
       "failed_to_decline": "Kunne ikke avslå invitasjonen"
     },
-    "shared_lists": "Delte lister"
+    "shared_lists": "Delte lister",
+    "privacy": {
+      "public": "Offentlig",
+      "shared": "Delt",
+      "private": "Privat"
+    },
+    "summary_list_one": "{{count}} Lister",
+    "summary_list_other": "{{count}} Lister",
+    "summary_bookmark_one": "{{count}} Bokmerker",
+    "summary_bookmark_other": "{{count}} Bokmerker",
+    "items_count_one": "{{count}} elementer",
+    "items_count_other": "{{count}} elementer"
   },
   "tags": {
     "all_tags": "Alle tagger",
@@ -785,7 +920,11 @@
     "no_unused_tags_match_your_search": "Ingen ubrukte tagger passer søket ditt",
     "no_tags_match_your_search": "Ingen tagger samsvarer med søket ditt",
     "search_placeholder": "Søk etter tagger …",
-    "search_or_create_placeholder": "Søk eller lag tagger …"
+    "search_or_create_placeholder": "Søk eller lag tagger …",
+    "rename_tag": "Gi nytt navn til etikett",
+    "items_count": "{{count}} elementer",
+    "attached_by_you": "{{count}} av deg",
+    "attached_by_ai": "{{count}} av AI"
   },
   "search": {
     "is_not_favorited": "Er ikke favorittmerket",
@@ -834,7 +973,18 @@
     "lists": "Lister",
     "feeds": "Feeder",
     "is_from_source": "Kilden er",
-    "is_not_from_source": "Kilden er ikke"
+    "is_not_from_source": "Kilden er ikke",
+    "mode_label": "Søkemodus",
+    "mode_label_description": "Velg hvordan Karakeep finner samsvarende bokmerker.",
+    "mode_keyword": "Nøkkelord",
+    "mode_keyword_description": "Finn nøyaktige ord i titler, innhold, URL-er og notater. Nesten umiddelbart.",
+    "mode_hybrid": "Hybrid",
+    "mode_hybrid_description": "Bland nøyaktige treff med relaterte ideer for den beste balansen. Tregere enn nøkkelordsøk.",
+    "mode_semantic": "Semantisk",
+    "mode_semantic_description": "Finn konseptuelt lignende bokmerker, selv uten felles ord. Tregere enn nøkkelordsøk.",
+    "keyword_placeholder": "Søk i titler, tekst, URL-er og knagger…",
+    "hybrid_placeholder": "Søk etter ord eller betydning…",
+    "semantic_placeholder": "Beskriv det du husker…"
   },
   "editor": {
     "text_toolbar": {
@@ -897,13 +1047,13 @@
   },
   "toasts": {
     "bookmarks": {
-      "full_page_archive": "Full Page Archive-opprettelse er trigga",
+      "full_page_archive": "Full Page Archive-opprettelse er utløst",
       "refetch": "Ny henting er satt i kø!",
-      "delete_from_list": "Bokmerket er sletta fra lista",
+      "delete_from_list": "Bokmerket er slettet fra lista",
       "clipboard_copied": "Lenken er lagt til utklippstavlen din!",
       "updated": "Bokmerket er oppdatert!",
       "deleted": "Bokmerket er slettet!",
-      "preserve_pdf": "PDF-bevaring er trigget",
+      "preserve_pdf": "PDF-bevaring er utløst",
       "update_banner": "Banneret er oppdatert!",
       "uploading_banner": "Laster opp banner..."
     },
@@ -914,8 +1064,10 @@
       "deleted": "Liste er slettet!"
     },
     "tags": {
-      "created": "Taggen er oppretta!",
-      "failed_to_create": "Klarte ikke å opprette taggen"
+      "created": "Taggen er opprettet!",
+      "failed_to_create": "Klarte ikke å opprette taggen",
+      "updated": "Etiketten har blitt oppdatert!",
+      "failed_to_update": "Kunne ikke oppdatere etikett"
     }
   },
   "cleanups": {
@@ -953,7 +1105,8 @@
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "Slette bokmerke?",
-      "delete_confirmation_description": "Er du sikker på at du vil slette dette bokmerket?"
+      "delete_confirmation_description": "Er du sikker på at du vil slette dette bokmerket?",
+      "bulk_delete_confirmation_description": "Er du sikker på at du vil slette {{count}} bokmerker?"
     }
   },
   "banners": {
@@ -1042,5 +1195,28 @@
     "download": "Last ned",
     "close": "Lukk",
     "generating": "Genererer…"
+  },
+  "keyboard_shortcuts": {
+    "title": "Tastatursnarveier",
+    "sections": {
+      "navigation": "Navigering",
+      "actions": "Handlinger",
+      "selection": "Utvalg",
+      "other": "Annet"
+    },
+    "move_left": "Flytt til venstre",
+    "move_down": "Flytt ned",
+    "move_up": "Flytt opp",
+    "move_right": "Flytt til høyre",
+    "open_bookmark": "Åpne bokmerke",
+    "clear_focus": "Fjern fokus / avslutt masseredigering",
+    "toggle_favorite": "Veksle favoritt",
+    "toggle_archive": "Arkiver / Gjenopprett",
+    "delete_bookmark": "Slett bokmerke",
+    "toggle_selection": "Veksle utvalg",
+    "select_all": "Marker alle",
+    "deselect_all": "Avmarker alle",
+    "show_help": "Vis tastatursnarveier",
+    "focus_search_alt": "Fokuser på søk"
   }
 }

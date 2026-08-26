@@ -3,7 +3,7 @@
   "info": {
     "version": "1.0.0",
     "title": "Karakeep API",
-    "description": "Karakeep is a self-hostable bookmarking and read-it-later service. This API allows you to manage bookmarks, lists, tags, highlights, assets, and backups programmatically.\n\n## Authentication\n\nAll endpoints require a Bearer token passed in the `Authorization` header. You can generate an API key from the Karakeep web UI under **Settings > API Keys**.\n\n## Pagination\n\nList endpoints support cursor-based pagination via `cursor` and `limit` query parameters. The response includes a `nextCursor` field — pass it as the `cursor` parameter to fetch the next page. A `null` value for `nextCursor` indicates there are no more results.\n\n## Bookmark Types\n\nBookmarks can be one of three types:\n- **link** — A URL bookmark with optional crawled metadata.\n- **text** — A plain text note.\n- **asset** — An uploaded file (image or PDF).\n\n## Rate Limiting\n\nWhen rate limiting is enabled, the API enforces per-IP request limits. If you exceed the allowed number of requests within the time window, the API returns a `429 Too Many Requests` response with a message indicating how many seconds to wait before retrying."
+    "description": "Karakeep is a self-hostable bookmarking and read-it-later service. This API allows you to manage bookmarks, lists, tags, highlights, feeds, assets, and backups programmatically.\n\n## Authentication\n\nAll endpoints require a Bearer token passed in the `Authorization` header. You can generate an API key from the Karakeep web UI under **Settings > API Keys**.\n\n## Pagination\n\nList endpoints support cursor-based pagination via `cursor` and `limit` query parameters. The response includes a `nextCursor` field — pass it as the `cursor` parameter to fetch the next page. A `null` value for `nextCursor` indicates there are no more results.\n\n## Bookmark Types\n\nBookmarks can be one of three types:\n- **link** — A URL bookmark with optional crawled metadata.\n- **text** — A plain text note.\n- **asset** — An uploaded file (image or PDF).\n\n## Rate Limiting\n\nWhen rate limiting is enabled, the API enforces per-IP request limits. If you exceed the allowed number of requests within the time window, the API returns a `429 Too Many Requests` response with a message indicating how many seconds to wait before retrying."
   },
   "tags": [
     {
@@ -37,6 +37,10 @@
     {
       "name": "Backups",
       "description": "Create and manage full account backups as downloadable zip archives."
+    },
+    {
+      "name": "Feeds",
+      "description": "Manage RSS feed subscriptions. Create, update, delete, and trigger fetches for RSS feeds that automatically import bookmarks."
     }
   ],
   "servers": [
@@ -89,18 +93,49 @@
         "description": "The unique identifier of the backup.",
         "example": "ieidlxygmwj87oxz5hxttoc8"
       },
+      "FeedId": {
+        "type": "string",
+        "description": "The unique identifier of the feed.",
+        "example": "ieidlxygmwj87oxz5hxttoc8"
+      },
+      "PaginatedBookmarks": {
+        "type": "object",
+        "properties": {
+          "bookmarks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Bookmark"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true,
+            "description": "Cursor for the next page, or null if no more results."
+          }
+        },
+        "required": [
+          "bookmarks",
+          "nextCursor"
+        ]
+      },
       "Bookmark": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string"
           },
+          "firstCreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
           "createdAt": {
-            "type": "string"
+            "type": "string",
+            "format": "date-time"
           },
           "modifiedAt": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "format": "date-time"
           },
           "title": {
             "type": "string",
@@ -118,7 +153,8 @@
             "enum": [
               "success",
               "failure",
-              "pending"
+              "pending",
+              null
             ]
           },
           "summarizationStatus": {
@@ -127,7 +163,18 @@
             "enum": [
               "success",
               "failure",
-              "pending"
+              "pending",
+              null
+            ]
+          },
+          "embeddingStatus": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "success",
+              "failure",
+              "pending",
+              null
             ]
           },
           "note": {
@@ -149,7 +196,8 @@
               "extension",
               "singlefile",
               "rss",
-              "import"
+              "import",
+              null
             ]
           },
           "userId": {
@@ -243,9 +291,37 @@
                     "type": "string",
                     "nullable": true
                   },
+                  "readerViewStatus": {
+                    "type": "string",
+                    "nullable": true,
+                    "enum": [
+                      "readable",
+                      "not_readable",
+                      "uncertain",
+                      "unavailable",
+                      null
+                    ]
+                  },
+                  "readerViewScore": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "preferredPreview": {
+                    "type": "string",
+                    "nullable": true,
+                    "enum": [
+                      "reader_view",
+                      "screenshot",
+                      "overview",
+                      null
+                    ]
+                  },
                   "crawledAt": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "format": "date-time"
                   },
                   "crawlStatus": {
                     "type": "string",
@@ -253,7 +329,8 @@
                     "enum": [
                       "success",
                       "failure",
-                      "pending"
+                      "pending",
+                      null
                     ]
                   },
                   "author": {
@@ -266,11 +343,13 @@
                   },
                   "datePublished": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "format": "date-time"
                   },
                   "dateModified": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "format": "date-time"
                   }
                 },
                 "required": [
@@ -404,30 +483,11 @@
           "favourited",
           "taggingStatus",
           "summarizationStatus",
+          "embeddingStatus",
           "userId",
           "tags",
           "content",
           "assets"
-        ]
-      },
-      "PaginatedBookmarks": {
-        "type": "object",
-        "properties": {
-          "bookmarks": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Bookmark"
-            }
-          },
-          "nextCursor": {
-            "type": "string",
-            "nullable": true,
-            "description": "Cursor for the next page, or null if no more results."
-          }
-        },
-        "required": [
-          "bookmarks",
-          "nextCursor"
         ]
       },
       "Cursor": {
@@ -449,6 +509,77 @@
         "required": [
           "code",
           "message"
+        ]
+      },
+      "BookmarkReadableContent": {
+        "type": "object",
+        "properties": {
+          "bookmarkId": {
+            "type": "string"
+          },
+          "bookmarkType": {
+            "type": "string",
+            "enum": [
+              "link",
+              "text",
+              "asset"
+            ]
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "markdown",
+              "text"
+            ]
+          },
+          "content": {
+            "type": "string"
+          },
+          "contentVersion": {
+            "type": "string",
+            "description": "A hash identifying the rendered content version used by this cursor."
+          },
+          "range": {
+            "type": "object",
+            "properties": {
+              "start": {
+                "type": "integer",
+                "description": "Zero-based start offset in Unicode characters, inclusive."
+              },
+              "end": {
+                "type": "integer",
+                "description": "Zero-based end offset in Unicode characters, exclusive."
+              },
+              "total": {
+                "type": "integer",
+                "description": "Total number of Unicode characters in the rendered content."
+              }
+            },
+            "required": [
+              "start",
+              "end",
+              "total"
+            ]
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true,
+            "description": "Cursor for the next chunk, or null when all content has been returned."
+          },
+          "truncated": {
+            "type": "boolean",
+            "description": "Whether more readable content remains after this chunk."
+          }
+        },
+        "required": [
+          "bookmarkId",
+          "bookmarkType",
+          "format",
+          "content",
+          "contentVersion",
+          "range",
+          "nextCursor",
+          "truncated"
         ]
       },
       "List": {
@@ -546,7 +677,8 @@
             "type": "string"
           },
           "createdAt": {
-            "type": "string"
+            "type": "string",
+            "format": "date-time"
           }
         },
         "required": [
@@ -638,7 +770,85 @@
           "fileName"
         ]
       },
-      "File to be uploaded": {}
+      "SignedAssetUrl": {
+        "type": "object",
+        "properties": {
+          "assetId": {
+            "type": "string",
+            "description": "The unique identifier of the asset."
+          },
+          "signedUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "The temporary URL for downloading the asset."
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the signed URL expires, in ISO 8601 format."
+          }
+        },
+        "required": [
+          "assetId",
+          "signedUrl",
+          "expiresAt"
+        ]
+      },
+      "Feed": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "importTags": {
+            "type": "boolean"
+          },
+          "lastFetchedStatus": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "success",
+              "failure",
+              "pending",
+              null
+            ]
+          },
+          "lastFetchedAt": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO 8601 timestamp of the last fetch attempt, or null if never fetched.",
+            "example": "2025-01-15T12:00:00.000Z"
+          },
+          "lastSuccessfulFetchAt": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO 8601 timestamp of the last successful fetch, or null if the feed has never been fetched successfully.",
+            "example": "2025-01-15T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "url",
+          "enabled",
+          "importTags",
+          "lastFetchedStatus",
+          "lastFetchedAt",
+          "lastSuccessfulFetchAt"
+        ]
+      }
     },
     "parameters": {
       "BookmarkId": {
@@ -646,6 +856,7 @@
           "$ref": "#/components/schemas/BookmarkId"
         },
         "required": true,
+        "description": "The unique identifier of the bookmark.",
         "name": "bookmarkId",
         "in": "path"
       },
@@ -654,6 +865,7 @@
           "$ref": "#/components/schemas/ListId"
         },
         "required": true,
+        "description": "The unique identifier of the list.",
         "name": "listId",
         "in": "path"
       },
@@ -662,6 +874,7 @@
           "$ref": "#/components/schemas/TagId"
         },
         "required": true,
+        "description": "The unique identifier of the tag.",
         "name": "tagId",
         "in": "path"
       },
@@ -670,6 +883,7 @@
           "$ref": "#/components/schemas/HighlightId"
         },
         "required": true,
+        "description": "The unique identifier of the highlight.",
         "name": "highlightId",
         "in": "path"
       },
@@ -678,6 +892,7 @@
           "$ref": "#/components/schemas/AssetId"
         },
         "required": true,
+        "description": "The unique identifier of the asset.",
         "name": "assetId",
         "in": "path"
       },
@@ -686,7 +901,17 @@
           "$ref": "#/components/schemas/BackupId"
         },
         "required": true,
+        "description": "The unique identifier of the backup.",
         "name": "backupId",
+        "in": "path"
+      },
+      "FeedId": {
+        "schema": {
+          "$ref": "#/components/schemas/FeedId"
+        },
+        "required": true,
+        "description": "The unique identifier of the feed.",
+        "name": "feedId",
         "in": "path"
       }
     }
@@ -836,7 +1061,7 @@
                       },
                       "createdAt": {
                         "type": "string",
-                        "nullable": true
+                        "format": "date-time"
                       },
                       "crawlPriority": {
                         "type": "string",
@@ -995,7 +1220,7 @@
     "/bookmarks/search": {
       "get": {
         "operationId": "searchBookmarks",
-        "description": "Full-text search across all bookmarks. Searches bookmark titles, content, descriptions, and notes. Results default to relevance sorting.",
+        "description": "Search across all bookmarks using full-text, semantic, or hybrid ranking. Full-text search covers bookmark titles, content, descriptions, and notes. Results default to full-text relevance sorting; semantic and hybrid modes support relevance sorting only.",
         "summary": "Search bookmarks",
         "tags": [
           "Bookmarks"
@@ -1014,6 +1239,22 @@
             "required": true,
             "description": "The search query string.",
             "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "fts",
+                "semantic",
+                "hybrid"
+              ],
+              "default": "fts",
+              "description": "Search strategy. 'fts' uses full-text search, 'semantic' uses bookmark embeddings, and 'hybrid' fuses a fixed candidate window from both. Hybrid falls back to full-text search when the query contains no free-text terms or when embedding infrastructure is unavailable. Semantic hits below a minimum similarity are dropped, so semantic search may return fewer results than requested."
+            },
+            "required": false,
+            "description": "Search strategy. 'fts' uses full-text search, 'semantic' uses bookmark embeddings, and 'hybrid' fuses a fixed candidate window from both. Hybrid falls back to full-text search when the query contains no free-text terms or when embedding infrastructure is unavailable. Semantic hits below a minimum similarity are dropped, so semantic search may return fewer results than requested.",
+            "name": "searchMode",
             "in": "query"
           },
           {
@@ -1299,7 +1540,7 @@
                   },
                   "createdAt": {
                     "type": "string",
-                    "nullable": true
+                    "format": "date-time"
                   },
                   "url": {
                     "type": "string",
@@ -1319,11 +1560,13 @@
                   },
                   "datePublished": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "format": "date-time"
                   },
                   "dateModified": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "format": "date-time"
                   },
                   "text": {
                     "type": "string",
@@ -1349,12 +1592,18 @@
                     "id": {
                       "type": "string"
                     },
+                    "firstCreatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
                     "createdAt": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "date-time"
                     },
                     "modifiedAt": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "date-time"
                     },
                     "title": {
                       "type": "string",
@@ -1372,7 +1621,8 @@
                       "enum": [
                         "success",
                         "failure",
-                        "pending"
+                        "pending",
+                        null
                       ]
                     },
                     "summarizationStatus": {
@@ -1381,7 +1631,18 @@
                       "enum": [
                         "success",
                         "failure",
-                        "pending"
+                        "pending",
+                        null
+                      ]
+                    },
+                    "embeddingStatus": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "success",
+                        "failure",
+                        "pending",
+                        null
                       ]
                     },
                     "note": {
@@ -1403,7 +1664,8 @@
                         "extension",
                         "singlefile",
                         "rss",
-                        "import"
+                        "import",
+                        null
                       ]
                     },
                     "userId": {
@@ -1418,6 +1680,7 @@
                     "favourited",
                     "taggingStatus",
                     "summarizationStatus",
+                    "embeddingStatus",
                     "userId"
                   ]
                 }
@@ -1437,6 +1700,116 @@
           },
           "404": {
             "description": "Bookmark not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookmarks/{bookmarkId}/content": {
+      "get": {
+        "operationId": "getBookmarkReadableContent",
+        "description": "Retrieve a bounded chunk of an agent-readable bookmark representation. Link content is rendered from extracted HTML; text and media bookmarks use their stored or extracted text. Continue reading by passing the opaque `nextCursor` from the previous response.",
+        "summary": "Get readable bookmark content",
+        "tags": [
+          "Bookmarks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BookmarkId"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "markdown",
+                "text"
+              ],
+              "description": "The readable representation. If omitted with a cursor, the cursor's format is used; otherwise defaults to markdown."
+            },
+            "required": false,
+            "description": "The readable representation. If omitted with a cursor, the cursor's format is used; otherwise defaults to markdown.",
+            "name": "format",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50000,
+              "default": 12000,
+              "description": "Maximum number of Unicode characters to return. The chunk may end earlier at a paragraph or line boundary."
+            },
+            "required": false,
+            "description": "Maximum number of Unicode characters to return. The chunk may end earlier at a paragraph or line boundary.",
+            "name": "maxChars",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Opaque continuation cursor returned as `nextCursor` by a previous response."
+            },
+            "required": false,
+            "description": "Opaque continuation cursor returned as `nextCursor` by a previous response.",
+            "name": "cursor",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A bounded chunk of readable bookmark content.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookmarkReadableContent"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — the cursor is malformed, mismatched, or outside the content.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bookmark not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The bookmark content changed after the supplied cursor was issued.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1477,12 +1850,18 @@
                     "id": {
                       "type": "string"
                     },
+                    "firstCreatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
                     "createdAt": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "date-time"
                     },
                     "modifiedAt": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "format": "date-time"
                     },
                     "title": {
                       "type": "string",
@@ -1500,7 +1879,8 @@
                       "enum": [
                         "success",
                         "failure",
-                        "pending"
+                        "pending",
+                        null
                       ]
                     },
                     "summarizationStatus": {
@@ -1509,7 +1889,18 @@
                       "enum": [
                         "success",
                         "failure",
-                        "pending"
+                        "pending",
+                        null
+                      ]
+                    },
+                    "embeddingStatus": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "success",
+                        "failure",
+                        "pending",
+                        null
                       ]
                     },
                     "note": {
@@ -1531,7 +1922,8 @@
                         "extension",
                         "singlefile",
                         "rss",
-                        "import"
+                        "import",
+                        null
                       ]
                     },
                     "userId": {
@@ -1546,6 +1938,7 @@
                     "favourited",
                     "taggingStatus",
                     "summarizationStatus",
+                    "embeddingStatus",
                     "userId"
                   ]
                 }
@@ -3716,7 +4109,8 @@
                               "extension",
                               "singlefile",
                               "rss",
-                              "import"
+                              "import",
+                              null
                             ]
                           },
                           "count": {
@@ -3784,7 +4178,9 @@
                 "type": "object",
                 "properties": {
                   "file": {
-                    "$ref": "#/components/schemas/File to be uploaded"
+                    "type": "string",
+                    "description": "File to be uploaded",
+                    "format": "binary"
                   }
                 },
                 "required": [
@@ -3855,6 +4251,49 @@
         }
       }
     },
+    "/assets/{assetId}/signed-url": {
+      "get": {
+        "operationId": "getAssetSignedUrl",
+        "description": "Generate a temporary signed URL that can be used to download an asset without sending an API key.",
+        "summary": "Get a signed asset URL",
+        "tags": [
+          "Assets"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AssetId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A temporary signed URL for downloading the asset and its expiration time.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedAssetUrl"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin/users/{userId}": {
       "put": {
         "operationId": "adminUpdateUser",
@@ -3876,6 +4315,7 @@
               "example": "user_123"
             },
             "required": true,
+            "description": "The ID of the user to update.",
             "name": "userId",
             "in": "path"
           }
@@ -3986,7 +4426,7 @@
     "/admin/jobs/trigger/recrawl": {
       "post": {
         "operationId": "adminTriggerRecrawl",
-        "description": "Trigger a recrawl of link bookmarks. You can filter by crawl status to target specific bookmarks (e.g., only failed ones). Optionally run AI inference after crawling. Requires admin role.",
+        "description": "Trigger a recrawl of link bookmarks. You can filter by crawl status to target specific bookmarks (e.g., only failed ones) and by how recently they were modified. Optionally run AI inference after crawling. Requires admin role.",
         "summary": "Trigger recrawl of links (admin)",
         "tags": [
           "Admin"
@@ -4018,11 +4458,18 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Whether to run AI inference after crawling."
+                  },
+                  "modifiedWithinSeconds": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": true,
+                    "description": "Only process bookmarks modified within this many seconds. Omit to process all matching bookmarks."
                   }
                 },
                 "example": {
                   "crawlStatus": "failure",
-                  "runInference": false
+                  "runInference": false,
+                  "modifiedWithinSeconds": 3600
                 }
               }
             }
@@ -4085,7 +4532,7 @@
     "/admin/jobs/trigger/reindex": {
       "post": {
         "operationId": "adminTriggerReindex",
-        "description": "Trigger a reindex of all bookmarks in the search engine. This clears the existing index and re-queues all bookmarks for indexing. Requires admin role.",
+        "description": "Trigger a reindex of bookmarks in the search engine. Without modifiedWithinSeconds, this clears the existing index and re-queues all bookmarks. When set, only bookmarks modified within that many seconds are re-queued and the existing index is preserved. Requires admin role.",
         "summary": "Trigger reindex of all bookmarks (admin)",
         "tags": [
           "Admin"
@@ -4095,6 +4542,27 @@
             "bearerAuth": []
           }
         ],
+        "requestBody": {
+          "description": "Optional time window for the reindex job.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "modifiedWithinSeconds": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": true,
+                    "description": "Only process bookmarks modified within this many seconds. Omit to process all matching bookmarks."
+                  }
+                },
+                "example": {
+                  "modifiedWithinSeconds": 3600
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Reindex jobs triggered successfully.",
@@ -4142,7 +4610,7 @@
     "/admin/jobs/trigger/inference": {
       "post": {
         "operationId": "adminTriggerInference",
-        "description": "Trigger AI inference (tagging or summarization) on bookmarks. You can filter by status to target specific bookmarks (e.g., only failed ones). Requires admin role.",
+        "description": "Trigger AI inference (tagging or summarization) on bookmarks. You can filter by status and by how recently bookmarks were modified. Requires admin role.",
         "summary": "Trigger AI inference on bookmarks (admin)",
         "tags": [
           "Admin"
@@ -4178,6 +4646,12 @@
                     ],
                     "default": "all",
                     "description": "Filter bookmarks by their inference status. Use 'failure' to retry only failed ones."
+                  },
+                  "modifiedWithinSeconds": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": true,
+                    "description": "Only process bookmarks modified within this many seconds. Omit to process all matching bookmarks."
                   }
                 },
                 "required": [
@@ -4185,7 +4659,8 @@
                 ],
                 "example": {
                   "type": "tag",
-                  "status": "failure"
+                  "status": "failure",
+                  "modifiedWithinSeconds": 3600
                 }
               }
             }
@@ -4282,7 +4757,8 @@
                             "nullable": true
                           },
                           "createdAt": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "date-time"
                           },
                           "size": {
                             "type": "number"
@@ -4366,7 +4842,8 @@
                       "nullable": true
                     },
                     "createdAt": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "date-time"
                     },
                     "size": {
                       "type": "number"
@@ -4451,7 +4928,8 @@
                       "nullable": true
                     },
                     "createdAt": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "date-time"
                     },
                     "size": {
                       "type": "number"
@@ -4576,7 +5054,10 @@
             "description": "The backup file as a zip archive.",
             "content": {
               "application/zip": {
-                "schema": {}
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
               }
             }
           },
@@ -4593,6 +5074,357 @@
           },
           "404": {
             "description": "Backup not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feeds": {
+      "get": {
+        "operationId": "listFeeds",
+        "description": "Retrieve all RSS feed subscriptions for the authenticated user.",
+        "summary": "Get all feeds",
+        "tags": [
+          "Feeds"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of all feeds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "feeds": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Feed"
+                      }
+                    }
+                  },
+                  "required": [
+                    "feeds"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createFeed",
+        "description": "Create a new RSS feed subscription. The feed will be periodically fetched and matching items will be imported as bookmarks.",
+        "summary": "Create a new feed",
+        "tags": [
+          "Feeds"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "description": "The feed to create.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "url": {
+                    "type": "string",
+                    "maxLength": 2000,
+                    "format": "uri"
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "importTags": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                },
+                "required": [
+                  "name",
+                  "url",
+                  "enabled"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created feed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Feed"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — e.g. the maximum number of RSS feeds per user has been reached.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feeds/{feedId}": {
+      "get": {
+        "operationId": "getFeed",
+        "description": "Retrieve a single RSS feed subscription by its ID.",
+        "summary": "Get a single feed",
+        "tags": [
+          "Feeds"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/FeedId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested feed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Feed"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Feed not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateFeed",
+        "description": "Update an RSS feed subscription. Only provided fields will be changed.",
+        "summary": "Update a feed",
+        "tags": [
+          "Feeds"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/FeedId"
+          }
+        ],
+        "requestBody": {
+          "description": "The fields to update.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "url": {
+                    "type": "string",
+                    "maxLength": 2000,
+                    "format": "uri"
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "importTags": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated feed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Feed"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Feed not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteFeed",
+        "description": "Delete an RSS feed subscription. Previously imported bookmarks are not affected.",
+        "summary": "Delete a feed",
+        "tags": [
+          "Feeds"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/FeedId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content — the feed was deleted successfully."
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Feed not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feeds/{feedId}/fetch": {
+      "post": {
+        "operationId": "fetchFeedNow",
+        "description": "Trigger an immediate fetch of the RSS feed. The fetch is enqueued and processed asynchronously.",
+        "summary": "Trigger a feed fetch",
+        "tags": [
+          "Feeds"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/FeedId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content — the fetch has been enqueued."
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Feed not found.",
             "content": {
               "application/json": {
                 "schema": {

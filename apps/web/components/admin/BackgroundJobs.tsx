@@ -23,6 +23,7 @@ import {
   HelpCircle,
   Image,
   ImageDown,
+  Layers,
   RefreshCw,
   Rss,
   Search,
@@ -294,6 +295,25 @@ function useJobActions() {
     );
 
   const {
+    mutateAsync: regenerateBookmarkEmbeddings,
+    isPending: isRegenerateEmbeddingsPending,
+  } = useMutation(
+    api.admin.regenerateAllBookmarkEmbeddings.mutationOptions({
+      onSuccess: () => {
+        toast({
+          description: "Embedding regeneration enqueued",
+        });
+      },
+      onError: (e) => {
+        toast({
+          variant: "destructive",
+          description: e.message,
+        });
+      },
+    }),
+  );
+
+  const {
     mutateAsync: reprocessAssetsFixMode,
     isPending: isReprocessingPending,
   } = useMutation(
@@ -464,6 +484,31 @@ function useJobActions() {
         loading: isReindexPending,
       },
     ],
+    embeddingsActions: [
+      {
+        label: t(
+          "admin.background_jobs.actions.regenerate_embeddings_for_pending_bookmarks_only",
+        ),
+        onClick: () => regenerateBookmarkEmbeddings({ status: "pending" }),
+        variant: "secondary" as const,
+        loading: isRegenerateEmbeddingsPending,
+      },
+      {
+        label: t(
+          "admin.background_jobs.actions.regenerate_embeddings_for_failed_bookmarks_only",
+        ),
+        onClick: () => regenerateBookmarkEmbeddings({ status: "failure" }),
+        variant: "secondary" as const,
+        loading: isRegenerateEmbeddingsPending,
+      },
+      {
+        label: t(
+          "admin.background_jobs.actions.regenerate_embeddings_for_all_bookmarks",
+        ),
+        onClick: () => regenerateBookmarkEmbeddings({ status: "all" }),
+        loading: isRegenerateEmbeddingsPending,
+      },
+    ],
     assetPreprocessingActions: [
       {
         label: t("admin.background_jobs.actions.reprocess_assets_fix_mode"),
@@ -580,6 +625,13 @@ export default function BackgroundJobs() {
       stats: { queued: serverStats.indexingStats.queued },
       description: t("admin.background_jobs.jobs.indexing.description"),
       actions: actions.indexingActions,
+    },
+    {
+      title: t("admin.background_jobs.jobs.embeddings.title"),
+      icon: Layers,
+      stats: serverStats.embeddingsStats,
+      description: t("admin.background_jobs.jobs.embeddings.description"),
+      actions: actions.embeddingsActions,
     },
     {
       title: t("admin.background_jobs.jobs.asset_preprocessing.title"),

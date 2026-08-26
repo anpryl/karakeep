@@ -14,6 +14,7 @@ import {
   bookmarkTags,
   highlights,
   passwordResetTokens,
+  subscriptions,
   tagsOnBookmarks,
   users,
   verificationTokens,
@@ -78,7 +79,7 @@ export class User {
       try {
         await sendVerificationEmail(
           input.email,
-          input.name,
+          user.name,
           token,
           input.redirectUrl,
         );
@@ -291,15 +292,29 @@ export class User {
       const token = randomBytes(32).toString("hex");
       const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-      await ctx.db.insert(passwordResetTokens).values({
-        userId: user.id,
-        token,
-        expires,
+      await ctx.db.transaction(async (tx) => {
+        // Invalidate any existing reset tokens for this user
+        await tx
+          .delete(passwordResetTokens)
+          .where(eq(passwordResetTokens.userId, user.id));
+
+        await tx.insert(passwordResetTokens).values({
+          userId: user.id,
+          token,
+          expires,
+        });
       });
 
-      await sendPasswordResetEmail(email, user.name, token);
+      // Deliberately not awaited. Delivery latency is only incurred for real
+      // accounts, so awaiting it makes this endpoint a timing oracle for which
+      // emails are registered -- and a hard oracle whenever SMTP is unhealthy,
+      // since only real accounts could reach the throw below (500 for a user
+      // that exists, 200 for one that doesn't).
+      void sendPasswordResetEmail(email, user.name, token).catch((error) => {
+        console.error("Failed to send password reset email:", error);
+      });
     } catch (error) {
-      console.error("Failed to send password reset email:", error);
+      console.error("Failed to create password reset token:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to send password reset email",
@@ -362,7 +377,32 @@ export class User {
       .where(eq(passwordResetTokens.token, input.token));
   }
 
+  private static async assertNoActiveStripeSubscriptionForUser(
+    db: Context["db"],
+    userId: string,
+  ) {
+    const subscription = await db.query.subscriptions.findFirst({
+      where: eq(subscriptions.userId, userId),
+      columns: {
+        status: true,
+      },
+    });
+
+    if (
+      subscription?.status === "active" ||
+      subscription?.status === "trialing"
+    ) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Can't delete user while subscription is active. Please cancel your subscription first and try again.",
+      });
+    }
+  }
+
   private static async deleteInternal(db: Context["db"], userId: string) {
+    await User.assertNoActiveStripeSubscriptionForUser(db, userId);
+
     const res = await db.delete(users).where(eq(users.id, userId));
 
     if (res.changes === 0) {

@@ -1,5 +1,9 @@
 # Using Karakeep with SingleFile Extension
 
+:::tip
+The official Karakeep extension now also supports client-side crawling as an experimental feature (powered by SingleFile under the hood). If you only need to hoard pages from your own browser session, you may not need the standalone SingleFile extension anymore.
+:::
+
 Karakeep supports being a destination for the [SingleFile extension](https://github.com/gildas-lormeau/SingleFile). This has the benefit of allowing you to use the singlefile extension to hoard links as you're seeing them in the browser. This is perfect for websites that don't like to get crawled, has annoying cookie banner or require authentication.
 
 ## Setup
@@ -14,6 +18,18 @@ Karakeep supports being a destination for the [SingleFile extension](https://git
 8. (Optional) Add `?ifexists=MODE` to the URL where MODE is one of `skip`, `overwrite`, `overwrite-recrawl`, `append`, or `append-recrawl`. See "Handling Existing Bookmarks" section below for details.
 
 Now, go to any page and click the singlefile extension icon. Once it's done with the upload, the bookmark should show up in your karakeep instance. Note that the singlefile extension doesn't show any progress on the upload. Given that archives are typically large, it might take 30+ seconds until the upload is done and starts showing up in Karakeep.
+
+## Importing an existing archive with the CLI
+
+If you already have a SingleFile HTML archive, import it by passing both the
+archive path and the original page URL:
+
+```bash
+karakeep bookmarks import-singlefile page.html --url "https://example.com/page"
+```
+
+Use `--if-exists MODE` to control how an existing bookmark for the same URL is
+handled. The supported modes are described below.
 
 ## Handling Existing Bookmarks
 
@@ -43,4 +59,3 @@ Also, you most likely will want to change the default `MAX_ASSET_SIZE_MB` in kar
 :::info
 Currently, we don't support screenshots for singlefile uploads, but this will change in the future.
 :::
-

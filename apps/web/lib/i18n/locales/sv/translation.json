@@ -104,7 +104,8 @@
     "more": "Mer",
     "replace_banner": "Ersätt banderoll",
     "add_banner": "Lägg till banderoll",
-    "download": "Ladda ner"
+    "download": "Ladda ner",
+    "rename": "Byt namn"
   },
   "settings": {
     "back_to_app": "Tillbaka till app",
@@ -225,19 +226,115 @@
       "import_bookmarks_from_linkwarden_export": "Importera bokmärken från Linkwarden-export",
       "import_bookmarks_from_tab_session_manager_export": "Importera bokmärken från Tab Session Manager",
       "import_bookmarks_from_mymind_export": "Importera bokmärken från min mymind-export",
-      "import_bookmarks_from_instapaper_export": "Importera bokmärken från Instapaper-export"
+      "import_bookmarks_from_instapaper_export": "Importera bokmärken från Instapaper-export",
+      "import_bookmarks_from_readwise_reader_export": "Importera bokmärken från Readwise Reader-export",
+      "import_bookmarks_from_onetab_export": "Importera bokmärken från OneTab-export"
     },
     "api_keys": {
       "api_keys": "API-nycklar",
       "new_api_key": "Ny API-nyckel",
       "new_api_key_desc": "Ge din API-nyckel ett unikt namn",
-      "key_success_please_copy": "Kopiera nyckeln och lagra den på en saker plats. Efter att du stängt denna dialogruta kommer su inte att kunna nå den igen.",
+      "key_success_please_copy": "Kopiera nyckeln och lagra den på en säker plats. När du stänger dialogrutan kommer du inte att kunna nå den igen.",
       "key_success": "Nyckeln skapades utan problem",
       "regenerate_api_key": "Återskapa API-nyckel",
       "key_regenerated": "Nyckeln har återskapats",
-      "key_regenerated_please_copy": "Kopiera den nya nyckeln och spara den på ett säkert ställe. Den gamla nyckeln har återkallats och kommer inte längre att funka.",
+      "key_regenerated_please_copy": "Kopiera den nya nyckeln och spara den på ett säkert ställe. Den gamla nyckeln har återkallats och kommer inte längre att fungera.",
       "regenerate_warning": "Är du säker på att du vill återskapa API-nyckeln \"{{name}}\"?",
-      "regenerate_confirmation": "Detta kommer att återkalla den nuvarande nyckeln och skapa en ny. Alla applikationer som använder den nuvarande nyckeln kommer sluta funka."
+      "regenerate_confirmation": "Detta kommer att återkalla den nuvarande nyckeln och skapa en ny. Alla applikationer som använder den nuvarande nyckeln kommer sluta fungera.",
+      "scopes": {
+        "scopes": "Omfång",
+        "choose_at_least_one": "Välj minst ett omfång eller välj fullständig åtkomst.",
+        "scope_details": "{{scope}} omfångsdetaljer",
+        "access": {
+          "none": "Ingen",
+          "read": "Läs",
+          "readwrite": "Läs/skriv"
+        },
+        "full_access": {
+          "label": "Fullständig åtkomst",
+          "description": "Åtkomst till alla API-funktioner som stöds."
+        },
+        "limited_scopes": {
+          "label": "Begränsade omfång",
+          "description": "Välj de resurstyper som denna nyckel får åtkomst till."
+        },
+        "resources": {
+          "assets": {
+            "label": "Tillgångar",
+            "description": "Åtkomst till filer och annat lagrat bokmärkesinnehåll."
+          },
+          "backups": {
+            "label": "Säkerhetskopior",
+            "description": "Hantera kontots säkerhetskopior."
+          },
+          "bookmarks": {
+            "label": "Bokmärken",
+            "description": "Få åtkomst till och hantera bokmärken."
+          },
+          "feeds": {
+            "label": "Flöden",
+            "description": "Hantera RSS-flöden och relaterad flödesdata."
+          },
+          "highlights": {
+            "label": "Markeringsfärger",
+            "description": "Hantera sparade bokmärkesmarkeringar."
+          },
+          "lists": {
+            "label": "Listor",
+            "description": "Hantera listor och medlemskap i listor."
+          },
+          "prompts": {
+            "label": "Prompter",
+            "description": "Hantera sparad konfiguration för AI-prompter."
+          },
+          "rules": {
+            "label": "Regler",
+            "description": "Få tillgång till automatiseringsregler."
+          },
+          "tags": {
+            "label": "Taggar",
+            "description": "Visa och ändra taggar."
+          },
+          "users": {
+            "label": "Användarkonto",
+            "description": "Få tillgång till kontoprofil och inställningar."
+          },
+          "webhooks": {
+            "label": "Webhooks",
+            "description": "Få tillgång till webhook-konfiguration."
+          },
+          "subscriptions": {
+            "label": "Prenumerationer",
+            "description": "Få tillgång till hantering av prenumerationer."
+          },
+          "importSessions": {
+            "label": "Importsessioner",
+            "description": "Få tillgång till importsessioner."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Admin: bokmärken",
+            "description": "Få tillgång till administrativa bokmärkesverktyg."
+          },
+          "jobs": {
+            "label": "Admin: jobb",
+            "description": "Få tillgång till kontroller för bakgrundsjobb."
+          },
+          "system": {
+            "label": "Admin: system",
+            "description": "Få tillgång till systemstatus och diagnostik."
+          },
+          "users": {
+            "label": "Admin: användare",
+            "description": "Få tillgång till administrativ användarhantering."
+          },
+          "subscriptions": {
+            "label": "Admin: prenumerationer",
+            "description": "Hantera nivåer för användarprenumerationer."
+          }
+        }
+      }
     },
     "user_settings": "Användarinställningar",
     "webhooks": {
@@ -268,7 +365,7 @@
       "asset_type": "Tillgångstyp"
     },
     "broken_links": {
-      "crawling_status": "Krypstatus",
+      "crawling_status": "Genomsökningsstatus",
       "crawling_failed": "Crawling misslyckades",
       "broken_links": "Trasiga länkar",
       "last_crawled_at": "Senaste genomsökning"
@@ -303,7 +400,8 @@
         "or": "Något av följande är sant",
         "url_does_not_contain": "URL:en innehåller inte",
         "title_contains": "Titeln innehåller",
-        "title_does_not_contain": "Titeln innehåller inte"
+        "title_does_not_contain": "Titeln innehåller inte",
+        "bookmark_source_is": "Bokmärkets källa är"
       },
       "actions_types": {
         "add_tag": "Lägg till tagg",
@@ -389,7 +487,7 @@
       "manage_billing": "Hantera fakturering",
       "subscription_canceled": "Din prenumeration har avbrutits och kommer att avslutas den {{date}}. Du kan prenumerera igen när som helst.",
       "usage_quotas": "Användning och kvoter",
-      "track_usage": "Kolla din nuvarande användning jämfört med dina gränser",
+      "track_usage": "Se din nuvarande användning jämfört med dina gränser",
       "total_bookmarks_saved": "Totalt antal sparade bokmärken",
       "assets_file_storage": "Tillgångar och fillagring",
       "unlimited_usage": "Obegränsad användning",
@@ -397,7 +495,17 @@
       "approaching_quota_limit": "Närmar sig kvotgränsen",
       "loading_usage": "Läser in användningsinformation...",
       "free": "Gratis",
-      "paid": "Betald"
+      "paid": "Betald",
+      "monthly": "Månadsvis",
+      "yearly": "Årsvis",
+      "per_month": "månad",
+      "per_year": "år",
+      "excl_vat": "exkl. moms",
+      "yearly_savings": "Spara {{percent}}%",
+      "pro_feature_bookmarks": "50 000 bokmärken",
+      "pro_feature_storage": "50 GB lagring",
+      "pro_feature_ai_tagging": "AI-driven taggning",
+      "pro_feature_full_text_search": "Fulltextsökning"
     },
     "import_sessions": {
       "title": "Importera sessioner",
@@ -415,7 +523,8 @@
         "processing": "Bearbetar",
         "staging": "Mellanlagring",
         "running": "Kör",
-        "paused": "Pausad"
+        "paused": "Pausad",
+        "archived": "Arkiverad"
       },
       "badges": {
         "pending": "{{count}} väntar",
@@ -452,8 +561,12 @@
         "no_results": "Inga resultat hittades för detta filter.",
         "view_bookmark": "Visa bokmärke",
         "load_more": "Ladda mer",
-        "no_title": "Ingen titel"
-      }
+        "no_title": "Ingen titel",
+        "archived_results": "Individuella bokmärkesresultat sparas inte längre för arkiverade importsessioner."
+      },
+      "finalize_dialog_title": "Slutför importsession",
+      "finalize_dialog_description": "Vill du köa \"{{name}}\" för bakgrundsbearbetning? Förberedda bokmärken kommer att börja importeras.",
+      "finalize_staging": "Slutför"
     },
     "backups": {
       "backups": "Säkerhetskopior",
@@ -563,6 +676,10 @@
         "admin_maintenance": {
           "title": "Admin Underhållsjobb",
           "description": "Administrativ rensning och underhåll av tillgångar"
+        },
+        "embeddings": {
+          "title": "Inbäddningsjobb",
+          "description": "Generering av vektorinbäddning för bokmärken"
         }
       },
       "monitor_and_manage": "Övervaka och hantera bakgrundsjobbköer och systembearbetningsuppgifter",
@@ -597,7 +714,10 @@
         "migrate_large_link_html_content": "Flytta stort HTML-innehåll i text till resurser",
         "recrawl_pending_links_only": "Kryp bara om väntande länkar",
         "regenerate_ai_tags_for_pending_bookmarks_only": "Generera AI-taggar bara för väntande bokmärken",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "Generera AI-sammanfattningar bara för väntande bokmärken"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Generera AI-sammanfattningar bara för väntande bokmärken",
+        "regenerate_embeddings_for_pending_bookmarks_only": "Regenerera inbäddningar endast för väntande bokmärken",
+        "regenerate_embeddings_for_failed_bookmarks_only": "Regenerera inbäddningar endast för misslyckade bokmärken",
+        "regenerate_embeddings_for_all_bookmarks": "Regenerera inbäddningar för alla bokmärken"
       }
     },
     "actions": {
@@ -635,7 +755,8 @@
         "not_configured": "Inte konfigurerad",
         "connected": "Ansluten",
         "disconnected": "Frånkopplad"
-      }
+      },
+      "vector_store": "Vektorlager"
     },
     "admin_tools": {
       "admin_tools": "Adminverktyg",
@@ -671,7 +792,10 @@
       "retag_queued": "Jobbet för att tagga om har köats",
       "resummarize_queued": "Jobbet för att sammanfatta om har köats",
       "view": "Visa",
-      "fetch_error": "Fel vid hämtning av bokmärke"
+      "fetch_error": "Fel vid hämtning av bokmärke",
+      "embedding_status": "Inbäddningsstatus",
+      "regenerate_embedding": "Regenerera inbäddning",
+      "regenerate_embedding_queued": "Jobb för regenerering av inbäddning har lagts i kö"
     }
   },
   "options": {
@@ -765,7 +889,18 @@
       "failed_to_accept": "Kunde inte acceptera inbjudan",
       "failed_to_decline": "Kunde inte neka inbjudan"
     },
-    "shared_lists": "Delade listor"
+    "shared_lists": "Delade listor",
+    "privacy": {
+      "public": "Offentlig",
+      "shared": "Delad",
+      "private": "Privat"
+    },
+    "summary_list_one": "{{count}} Listor",
+    "summary_list_other": "{{count}} Listor",
+    "summary_bookmark_one": "{{count}} Bokmärken",
+    "summary_bookmark_other": "{{count}} Bokmärken",
+    "items_count_one": "{{count}} objekt",
+    "items_count_other": "{{count}} objekt"
   },
   "tags": {
     "drag_and_drop_merging_info": "Dra och släpp taggar på varandra för att sammanfoga dem",
@@ -791,7 +926,11 @@
     "no_unused_tags_match_your_search": "Inga oanvända taggar matchar din sökning",
     "no_tags_match_your_search": "Inga taggar matchar din sökning",
     "search_placeholder": "Sök taggar...",
-    "search_or_create_placeholder": "Sök eller skapa taggar..."
+    "search_or_create_placeholder": "Sök eller skapa taggar...",
+    "rename_tag": "Byt namn på tagg",
+    "items_count": "{{count}} objekt",
+    "attached_by_you": "{{count}} av dig",
+    "attached_by_ai": "{{count}} av AI"
   },
   "editor": {
     "import_as_separate_bookmarks": "Importera som separata bokmärken",
@@ -872,7 +1011,9 @@
     },
     "tags": {
       "created": "Taggen har skapats!",
-      "failed_to_create": "Kunde inte skapa tagg"
+      "failed_to_create": "Kunde inte skapa tagg",
+      "updated": "Taggen har uppdaterats!",
+      "failed_to_update": "Misslyckades med att uppdatera taggen"
     }
   },
   "cleanups": {
@@ -901,7 +1042,8 @@
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "Ta bort bokmärke?",
-      "delete_confirmation_description": "Är du säker på att du vill ta bort det här bokmärket?"
+      "delete_confirmation_description": "Är du säker på att du vill ta bort det här bokmärket?",
+      "bulk_delete_confirmation_description": "Är du säker på att du vill radera {{count}} bokmärken?"
     }
   },
   "search": {
@@ -951,7 +1093,18 @@
     "lists": "Listor",
     "feeds": "Feeds",
     "is_from_source": "Källa är",
-    "is_not_from_source": "Källa är inte"
+    "is_not_from_source": "Källa är inte",
+    "mode_label": "Sökläge",
+    "mode_label_description": "Välj hur Karakeep hittar matchande bokmärken.",
+    "mode_keyword": "Nyckelord",
+    "mode_keyword_description": "Matcha exakta ord i titlar, innehåll, webbadresser och anteckningar. Nästan omedelbart.",
+    "mode_hybrid": "Hybrid",
+    "mode_hybrid_description": "Blanda exakta matchningar med relaterade idéer för bästa balans. Långsammare än nyckelordssökning.",
+    "mode_semantic": "Semantisk",
+    "mode_semantic_description": "Hitta konceptuellt liknande bokmärken, även utan gemensamma ord. Långsammare än nyckelordssökning.",
+    "keyword_placeholder": "Sök i titlar, text, webbadresser och taggar…",
+    "hybrid_placeholder": "Sök på ord eller betydelse…",
+    "semantic_placeholder": "Beskriv vad du kommer ihåg…"
   },
   "highlights": {
     "no_highlights": "Du har inga markeringar ännu."
@@ -1042,5 +1195,28 @@
     "download": "Ladda ner",
     "close": "Stäng",
     "generating": "Genererar..."
+  },
+  "keyboard_shortcuts": {
+    "title": "Tangentbordsgenvägar",
+    "sections": {
+      "navigation": "Navigering",
+      "actions": "Åtgärder",
+      "selection": "Markering",
+      "other": "Övrigt"
+    },
+    "move_left": "Flytta till vänster",
+    "move_down": "Flytta nedåt",
+    "move_up": "Flytta uppåt",
+    "move_right": "Flytta till höger",
+    "open_bookmark": "Öppna bokmärke",
+    "clear_focus": "Rensa fokus / avsluta massredigering",
+    "toggle_favorite": "Växla favorit",
+    "toggle_archive": "Arkivera / Återställ från arkiv",
+    "delete_bookmark": "Radera bokmärke",
+    "toggle_selection": "Växla markering",
+    "select_all": "Markera alla",
+    "deselect_all": "Avmarkera alla",
+    "show_help": "Visa tangentbordsgenvägar",
+    "focus_search_alt": "Fokusera på sök"
   }
 }

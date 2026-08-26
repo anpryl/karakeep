@@ -51,12 +51,14 @@ function PDFContentSection({ bookmark }: { bookmark: ZBookmark }) {
           alt="screenshot"
           src={getAssetUrl(screenshot)}
           fill={true}
+          unoptimized
           className="object-contain"
         />
       </div>
     ) : (
-      <iframe
+      <embed
         title={bookmark.content.assetId}
+        type="application/pdf"
         className="h-full w-full"
         src={getAssetUrl(bookmark.content.assetId)}
       />
@@ -94,6 +96,7 @@ function ImageContentSection({ bookmark }: { bookmark: ZBookmark }) {
         <Image
           alt="asset"
           fill={true}
+          unoptimized
           className="object-contain"
           src={getAssetUrl(bookmark.content.assetId)}
         />

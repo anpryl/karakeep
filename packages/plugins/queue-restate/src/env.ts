@@ -3,7 +3,7 @@ import { z } from "zod";
 const stringBool = (defaultValue: string) =>
   z
     .string()
-    .default(defaultValue)
+    .prefault(defaultValue)
     .refine((s) => s === "true" || s === "false")
     .transform((s) => s === "true");
 
@@ -20,5 +20,6 @@ export const envConfig = z
     // Deployment mode configuration - allows running dispatchers and runners separately
     RESTATE_ENABLE_DISPATCHERS: stringBool("true"),
     RESTATE_ENABLE_RUNNERS: stringBool("true"),
+    RESTATE_DISPATCHER_INACTIVITY_TIMEOUT_SECS: z.coerce.number().default(10),
   })
   .parse(process.env);

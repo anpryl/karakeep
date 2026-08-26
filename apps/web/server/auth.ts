@@ -9,6 +9,7 @@ import NextAuth, {
 import { Adapter as NextAuthAdapater } from "next-auth/adapters";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { Provider } from "next-auth/providers/index";
+import requestIp from "request-ip";
 
 import { db } from "@karakeep/db";
 import {
@@ -18,6 +19,12 @@ import {
   verificationTokens,
 } from "@karakeep/db/schema";
 import serverConfig from "@karakeep/shared/config";
+import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
+import {
+  containsUnsafeUserNameMarkup,
+  normalizeUserNameInput,
+} from "@karakeep/shared/utils/userName";
+import { logEvent } from "@karakeep/shared-server";
 import { validatePassword } from "@karakeep/trpc/auth";
 import { User } from "@karakeep/trpc/models/users";
 
@@ -71,6 +78,15 @@ async function isAdmin(email: string): Promise<boolean> {
   return res?.role == "admin";
 }
 
+const DEFAULT_DISPLAY_NAME = "User";
+
+function normalizeSafeDisplayName(name: string | null | undefined): string {
+  const normalizedName = normalizeUserNameInput(name ?? "");
+  return !containsUnsafeUserNameMarkup(name ?? "") && normalizedName
+    ? normalizedName
+    : DEFAULT_DISPLAY_NAME;
+}
+
 const CustomProvider = (): Adapter => {
   const adapter = DrizzleAdapter(db, {
     usersTable: users,
@@ -82,11 +98,17 @@ const CustomProvider = (): Adapter => {
   return {
     ...adapter,
     createUser: async (user: Omit<AdapterUser, "id">) => {
-      return await User.createRaw(db, {
-        name: user.name ?? "",
+      const created = await User.createRaw(db, {
+        name: normalizeSafeDisplayName(user.name),
         email: user.email,
         emailVerified: user.emailVerified,
       });
+      logEvent({
+        "event.name": "user.signup",
+        "user.id": created.id,
+        "auth.provider": "oauth",
+      });
+      return created;
     },
   };
 };
@@ -99,9 +121,28 @@ const providers: Provider[] = [
       email: { label: "Email", type: "email", placeholder: "Email" },
       password: { label: "Password", type: "password" },
     },
-    async authorize(credentials) {
+    async authorize(credentials, req) {
       if (!credentials) {
         return null;
+      }
+
+      if (serverConfig.rateLimiting.enabled) {
+        const ip = requestIp.getClientIp({ headers: req?.headers ?? {} });
+        const client = ip ? await getRateLimitClient() : null;
+        if (client) {
+          const result = await client.checkRateLimit(
+            { name: "auth.login", windowMs: 15 * 60 * 1000, maxRequests: 10 },
+            `login:${ip}:${credentials.email.toLowerCase()}`,
+          );
+          if (!result.allowed) {
+            logEvent({
+              "event.name": "user.login_failed",
+              "user.email": credentials.email,
+              "auth.failure_reason": "rate_limited",
+            });
+            throw new Error("Too many login attempts. Please try again later.");
+          }
+        }
       }
 
       try {
@@ -110,7 +151,13 @@ const providers: Provider[] = [
           credentials?.password,
           db,
         );
-      } catch {
+      } catch (e) {
+        logEvent({
+          "event.name": "user.login_failed",
+          "user.email": credentials?.email,
+          "auth.failure_reason":
+            e instanceof Error ? e.message : "invalid_credentials",
+        });
         return null;
       }
     },
@@ -127,6 +174,13 @@ if (oauth.wellKnownUrl) {
     authorization: { params: { scope: oauth.scope } },
     clientId: oauth.clientId,
     clientSecret: oauth.clientSecret,
+    ...(oauth.idTokenSignedResponseAlg
+      ? {
+          client: {
+            id_token_signed_response_alg: oauth.idTokenSignedResponseAlg,
+          },
+        }
+      : {}),
     allowDangerousEmailAccountLinking: oauth.allowDangerousEmailAccountLinking,
     checks: ["pkce", "state"],
     httpOptions: {
@@ -137,9 +191,10 @@ if (oauth.wellKnownUrl) {
         isAdmin(profile.email),
         isFirstUser(),
       ]);
+
       return {
         id: profile.sub,
-        name: profile.name || profile.email,
+        name: normalizeSafeDisplayName(profile.name),
         email: profile.email,
         role: admin || firstUser ? "admin" : "user",
       };
@@ -167,31 +222,59 @@ export const authOptions: NextAuthOptions = {
         throw new Error("Provider didn't provide an email during signin");
       }
       const user = await db.query.users.findFirst({
-        columns: { emailVerified: true },
+        columns: { id: true, emailVerified: true },
         where: eq(users.email, email),
       });
 
       if (credentials) {
         if (!user) {
+          logEvent({
+            "event.name": "user.login_failed",
+            "user.email": email,
+            "auth.failure_reason": "invalid_credentials",
+          });
           throw new Error("Invalid credentials");
         }
         if (
           serverConfig.auth.emailVerificationRequired &&
           !user.emailVerified
         ) {
+          logEvent({
+            "event.name": "user.login_failed",
+            "user.email": email,
+            "auth.failure_reason": "email_not_verified",
+          });
           throw new Error("Please verify your email address before signing in");
         }
+        logEvent({
+          "event.name": "user.login",
+          "user.id": user.id,
+          "auth.provider": "credentials",
+        });
         return true;
       }
 
       // If it's a new user and signups are disabled, fail the sign in
       if (!user && serverConfig.auth.disableSignups) {
+        logEvent({
+          "event.name": "user.signup",
+          "auth.provider": "oauth",
+          "auth.failure_reason": "signups_disabled",
+        });
         throw new Error("Signups are disabled in server config");
       }
 
       // TODO: We're blindly trusting oauth providers to validate emails
       // As such, oauth users can sign in even if email verification is enabled.
       // We might want to change this in the future.
+
+      if (user) {
+        logEvent({
+          "event.name": "user.login",
+          "user.id": user.id,
+          "auth.provider": "oauth",
+        });
+      }
 
       return true;
     },

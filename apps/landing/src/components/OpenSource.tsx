@@ -17,7 +17,7 @@ export default function OpenSource() {
           keep full control of your data, and contribute to the project.
         </p>
 
-        <div className="mt-8 flex items-center justify-center gap-4">
+        <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <a
             href={GITHUB_LINK}
             target="_blank"
@@ -41,7 +41,7 @@ export default function OpenSource() {
 
         <div className="mt-12 flex flex-wrap items-center justify-center gap-8 text-sm">
           <div className="text-center">
-            <div className="text-3xl font-bold text-white">24k+</div>
+            <div className="text-3xl font-bold text-white">28k+</div>
             <div className="mt-1 text-gray-400">GitHub Stars</div>
           </div>
           <div className="h-8 w-px bg-gray-700" />

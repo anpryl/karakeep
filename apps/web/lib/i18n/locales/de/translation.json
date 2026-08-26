@@ -104,7 +104,8 @@
     "more": "Mehr",
     "replace_banner": "Banner ersetzen",
     "add_banner": "Banner hinzufügen",
-    "download": "Herunterladen"
+    "download": "Herunterladen",
+    "rename": "Umbenennen"
   },
   "settings": {
     "back_to_app": "Zurück zur App",
@@ -150,11 +151,11 @@
         "preview": "Vorschau",
         "not_set": "Nicht festgelegt",
         "clear_local_overrides": "Geräteeinstellungen löschen",
-        "preview_text": "The quick brown fox jumps over the lazy dog. So wird der Text Ihrer Leseransicht aussehen.",
+        "preview_text": "The quick brown fox jumps over the lazy dog. So wird der Text deiner Leseransicht aussehen.",
         "local_overrides_cleared": "Gerätespezifische Einstellungen wurden gelöscht",
-        "local_overrides_description": "Dieses Gerät hat Lesereinstellungen, die von Ihren globalen Standardeinstellungen abweichen:",
+        "local_overrides_description": "Dieses Gerät hat Lesereinstellungen, die von deinen globalen Standardeinstellungen abweichen:",
         "clear_defaults": "Alle Standardeinstellungen löschen",
-        "description": "Standard-Texteinstellungen für die Leseransicht konfigurieren. Diese Einstellungen werden auf allen Ihren Geräten synchronisiert.",
+        "description": "Standard-Texteinstellungen für die Leseransicht konfigurieren. Diese Einstellungen werden auf allen deinen Geräten synchronisiert.",
         "defaults_cleared": "Die Standardeinstellungen des Readers wurden gelöscht",
         "save_hint": "Einstellungen nur für dieses Gerät speichern oder über alle Geräte synchronisieren",
         "save_as_default": "Als Standard speichern",
@@ -178,7 +179,7 @@
     "ai": {
       "ai_settings": "KI-Einstellungen",
       "tagging_rules": "Tagging-Regeln",
-      "tagging_rule_description": "Eingabeaufforderungen, die Sie hier hinzufügen, werden als Regeln für das Modell bei der Tag-Generierung verwendet. Sie können die endgültigen Aufforderungen im Bereich Vorschau anzeigen.",
+      "tagging_rule_description": "Prompts, die du hier hinzufügst, werden als Regeln für das Modell bei der Tag-Generierung verwendet. Du kannst die endgültigen Prompts im Bereich Vorschau anzeigen.",
       "prompt_preview": "Aufforderungsvorschau",
       "text_prompt": "Text-Aufforderung",
       "images_prompt": "Bild-Aufforderung",
@@ -223,22 +224,118 @@
       "import_bookmarks_from_karakeep_export": "Lesezeichen aus Karakeep-Export importieren",
       "export_links_and_notes": "Links und Notizen exportieren",
       "imported_bookmarks": "Importierte Lesezeichen",
-      "import_bookmarks_from_linkwarden_export": "Importieren Sie Lesezeichen aus dem Linkwarden-Export",
+      "import_bookmarks_from_linkwarden_export": "Lesezeichen aus Linkwarden-Export importieren",
       "import_bookmarks_from_tab_session_manager_export": "Lesezeichen aus Tab Session Manager importieren",
       "import_bookmarks_from_mymind_export": "Lesezeichen aus meinem mymind-Export importieren",
-      "import_bookmarks_from_instapaper_export": "Lesezeichen aus Instapaper-Export importieren"
+      "import_bookmarks_from_instapaper_export": "Lesezeichen aus Instapaper-Export importieren",
+      "import_bookmarks_from_readwise_reader_export": "Lesezeichen aus dem Readwise Reader-Export importieren",
+      "import_bookmarks_from_onetab_export": "Lesezeichen aus OneTab-Export importieren"
     },
     "api_keys": {
       "api_keys": "API-Schlüssel",
       "new_api_key": "Neuer API-Schlüssel",
-      "new_api_key_desc": "Geben Sie Ihrem API-Schlüssel einen eindeutigen Namen",
+      "new_api_key_desc": "Gib deinem API-Schlüssel einen eindeutigen Namen",
       "key_success": "Schlüssel wurde erfolgreich erstellt",
-      "key_success_please_copy": "Bitte kopieren Sie den Schlüssel und speichern Sie ihn an einem sicheren Ort. Sobald Sie das Dialogfeld schließen, können Sie nicht mehr darauf zugreifen.",
+      "key_success_please_copy": "Bitte kopiere den Schlüssel und speichere ihn an einem sicheren Ort. Sobald du das Dialogfeld schließt, kannst du nicht mehr darauf zugreifen.",
       "regenerate_api_key": "API-Schlüssel neu generieren",
       "key_regenerated": "Schlüssel wurde erfolgreich neu generiert",
       "key_regenerated_please_copy": "Bitte kopiere den neuen Schlüssel und bewahre ihn an einem sicheren Ort auf. Der alte Schlüssel wurde widerrufen und funktioniert nicht mehr.",
       "regenerate_warning": "Bist du sicher, dass du den API-Schlüssel „{{name}}“ neu generieren möchtest?",
-      "regenerate_confirmation": "Dies widerruft den aktuellen Schlüssel und generiert einen neuen. Alle Anwendungen, die den aktuellen Schlüssel verwenden, funktionieren dann nicht mehr."
+      "regenerate_confirmation": "Dies widerruft den aktuellen Schlüssel und generiert einen neuen. Alle Anwendungen, die den aktuellen Schlüssel verwenden, funktionieren dann nicht mehr.",
+      "scopes": {
+        "resources": {
+          "users": {
+            "label": "Benutzerkonto",
+            "description": "Zugriff auf Kontoprofil und Einstellungen."
+          },
+          "webhooks": {
+            "label": "Webhooks",
+            "description": "Zugriff auf Webhook-Konfiguration."
+          },
+          "subscriptions": {
+            "label": "Abonnements",
+            "description": "Zugriff auf die Abonnementverwaltung."
+          },
+          "importSessions": {
+            "label": "Importsitzungen",
+            "description": "Zugriff auf Importsitzungen."
+          },
+          "assets": {
+            "label": "Assets",
+            "description": "Zugriff auf Dateien und andere gespeicherte Lesezeicheninhalte."
+          },
+          "backups": {
+            "label": "Backups",
+            "description": "Kontosicherungen verwalten."
+          },
+          "bookmarks": {
+            "label": "Lesezeichen",
+            "description": "Lesezeichen aufrufen und verwalten."
+          },
+          "feeds": {
+            "label": "Feeds",
+            "description": "RSS-Feeds und zugehörige Feed-Daten verwalten."
+          },
+          "highlights": {
+            "label": "Highlights",
+            "description": "Gespeicherte Lesezeichen-Highlights verwalten."
+          },
+          "lists": {
+            "label": "Listen",
+            "description": "Verwalten Sie Listen und Listenmitgliedschaften."
+          },
+          "prompts": {
+            "label": "Prompts",
+            "description": "Gespeicherte KI-Prompt-Konfigurationen verwalten."
+          },
+          "rules": {
+            "label": "Regeln",
+            "description": "Zugriff auf Automatisierungsregeln."
+          },
+          "tags": {
+            "label": "Tags",
+            "description": "Tags aufrufen und ändern."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Admin: Lesezeichen",
+            "description": "Zugriff auf administrative Lesezeichen-Tools."
+          },
+          "jobs": {
+            "label": "Admin: Jobs",
+            "description": "Zugriff auf Hintergrundjob-Steuerungen."
+          },
+          "system": {
+            "label": "Admin: System",
+            "description": "Zugriff auf Systemstatus und Diagnose."
+          },
+          "users": {
+            "label": "Admin: Benutzer",
+            "description": "Zugriff auf die administrative Benutzerverwaltung."
+          },
+          "subscriptions": {
+            "label": "Admin: Abonnements",
+            "description": "Verwalten Sie die Abonnementstufen der Benutzer."
+          }
+        },
+        "scopes": "Berechtigungen",
+        "choose_at_least_one": "Wählen Sie mindestens eine Berechtigung aus oder wählen Sie den Vollzugriff.",
+        "scope_details": "Details zur Berechtigung {{scope}}",
+        "access": {
+          "none": "Keine",
+          "read": "Lesen",
+          "readwrite": "Lesen/Schreiben"
+        },
+        "full_access": {
+          "label": "Vollzugriff",
+          "description": "Zugriff auf alle unterstützten API-Operationen."
+        },
+        "limited_scopes": {
+          "label": "Eingeschränkte Berechtigungen",
+          "description": "Wählen Sie die Ressourcentypen aus, auf die dieser Schlüssel zugreifen kann."
+        }
+      }
     },
     "broken_links": {
       "broken_links": "Defekte Links",
@@ -286,7 +383,8 @@
         "is_archived": "Ist archiviert",
         "url_does_not_contain": "URL Enthält nicht",
         "title_contains": "Titel enthält",
-        "title_does_not_contain": "Titel enthält nicht"
+        "title_does_not_contain": "Titel enthält nicht",
+        "bookmark_source_is": "Lesezeichenquelle ist"
       },
       "rule_name": "Regelname",
       "rules": "Regel-Engine",
@@ -397,7 +495,17 @@
       "approaching_quota_limit": "Kontingentgrenze wird erreicht",
       "loading_usage": "Lade Nutzungsinformationen...",
       "free": "Kostenlos",
-      "paid": "Bezahlt"
+      "paid": "Bezahlt",
+      "monthly": "Monatlich",
+      "yearly": "Jährlich",
+      "per_month": "Monat",
+      "per_year": "Jahr",
+      "excl_vat": "zzgl. MwSt.",
+      "yearly_savings": "Sparen Sie {{percent}}%",
+      "pro_feature_bookmarks": "50.000 Lesezeichen",
+      "pro_feature_storage": "50 GB Speicherplatz",
+      "pro_feature_ai_tagging": "KI-gestützte Verschlagwortung",
+      "pro_feature_full_text_search": "Volltextsuche"
     },
     "import_sessions": {
       "title": "Import-Sitzungen",
@@ -415,7 +523,8 @@
         "processing": "Wird verarbeitet",
         "staging": "Wird vorbereitet",
         "running": "Läuft",
-        "paused": "Pausiert"
+        "paused": "Pausiert",
+        "archived": "Archiviert"
       },
       "badges": {
         "pending": "{{count}} ausstehend",
@@ -452,8 +561,12 @@
         "no_results": "Für diesen Filter wurden keine Ergebnisse gefunden.",
         "view_bookmark": "Lesezeichen anzeigen",
         "load_more": "Mehr laden",
-        "no_title": "Kein Titel"
-      }
+        "no_title": "Kein Titel",
+        "archived_results": "Einzelne Lesezeichen-Ergebnisse werden für archivierte Importsitzungen nicht mehr aufbewahrt."
+      },
+      "finalize_dialog_title": "Import-Sitzung abschließen",
+      "finalize_dialog_description": "„{{name}}“ zur Hintergrundverarbeitung in die Warteschlange stellen? Die vorbereiteten Lesezeichen werden importiert.",
+      "finalize_staging": "Abschließen"
     },
     "backups": {
       "backups": "Backups",
@@ -563,6 +676,10 @@
         "admin_maintenance": {
           "title": "Wartungsaufgaben für Admins",
           "description": "Administrative Bereinigung und Anlagenwartung"
+        },
+        "embeddings": {
+          "title": "Embedding-Jobs",
+          "description": "Vektoreinbettungsgenerierung für Lesezeichen"
         }
       },
       "monitor_and_manage": "Überwachung und Verwaltung von Hintergrund-Job-Warteschlangen und Systemverarbeitungsaufgaben",
@@ -597,7 +714,10 @@
         "migrate_large_link_html_content": "Große Inline-HTML-Inhalte in Assets verschieben",
         "recrawl_pending_links_only": "Nur ausstehende Links neu crawlen",
         "regenerate_ai_tags_for_pending_bookmarks_only": "KI-Tags nur für ausstehende Bookmarks neu generieren",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "KI-Zusammenfassungen nur für ausstehende Bookmarks neu generieren"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "KI-Zusammenfassungen nur für ausstehende Bookmarks neu generieren",
+        "regenerate_embeddings_for_pending_bookmarks_only": "Einbettungen nur für ausstehende Lesezeichen regenerieren",
+        "regenerate_embeddings_for_failed_bookmarks_only": "Einbettungen nur für fehlgeschlagene Lesezeichen regenerieren",
+        "regenerate_embeddings_for_all_bookmarks": "Einbettungen für alle Lesezeichen regenerieren"
       }
     },
     "actions": {
@@ -635,7 +755,8 @@
         "not_configured": "Nicht konfiguriert",
         "connected": "Verbunden",
         "disconnected": "Getrennt"
-      }
+      },
+      "vector_store": "Vektorspeicher"
     },
     "admin_tools": {
       "admin_tools": "Admin Tools",
@@ -671,7 +792,10 @@
       "retag_queued": "Job zum Neuverschlagworten wurde in die Warteschlange gestellt",
       "resummarize_queued": "Job zum Neuzusammenfassen wurde in die Warteschlange gestellt",
       "view": "Anzeigen",
-      "fetch_error": "Fehler beim Abrufen des Lesezeichens"
+      "fetch_error": "Fehler beim Abrufen des Lesezeichens",
+      "embedding_status": "Embedding-Status",
+      "regenerate_embedding": "Einbettung regenerieren",
+      "regenerate_embedding_queued": "Job zur Regeneration der Einbettung wurde in die Warteschlange gestellt"
     }
   },
   "options": {
@@ -765,12 +889,23 @@
       "failed_to_accept": "Einladung konnte nicht angenommen werden",
       "failed_to_decline": "Einladung konnte nicht abgelehnt werden"
     },
-    "shared_lists": "Geteilte Listen"
+    "shared_lists": "Geteilte Listen",
+    "privacy": {
+      "public": "Öffentlich",
+      "shared": "Geteilt",
+      "private": "Privat"
+    },
+    "summary_list_one": "{{count}} Listen",
+    "summary_list_other": "{{count}} Listen",
+    "summary_bookmark_one": "{{count}} Lesezeichen",
+    "summary_bookmark_other": "{{count}} Lesezeichen",
+    "items_count_one": "{{count}} Elemente",
+    "items_count_other": "{{count}} Elemente"
   },
   "tags": {
     "all_tags": "Alle Tags",
-    "your_tags": "Ihre Tags",
-    "your_tags_info": "Tags, die Sie mindestens einmal angehängt haben",
+    "your_tags": "Deine Tags",
+    "your_tags_info": "Tags, die du mindestens einmal angehängt hast",
     "ai_tags": "KI-Tags",
     "ai_tags_info": "Tags, die nur automatisch (von der KI) angehängt wurden",
     "unused_tags": "Ungenutzte Tags",
@@ -791,7 +926,11 @@
     "no_unused_tags_match_your_search": "Keine unbenutzten Tags entsprechen deiner Suche",
     "no_tags_match_your_search": "Keine Tags entsprechen deiner Suche",
     "search_placeholder": "Tags suchen...",
-    "search_or_create_placeholder": "Tags suchen oder erstellen..."
+    "search_or_create_placeholder": "Tags suchen oder erstellen...",
+    "rename_tag": "Tag umbenennen",
+    "items_count": "{{count}} Elemente",
+    "attached_by_you": "{{count}} von Ihnen",
+    "attached_by_ai": "{{count}} von KI"
   },
   "preview": {
     "view_original": "Original anzeigen",
@@ -810,12 +949,12 @@
     "continue_button": "Weiter"
   },
   "editor": {
-    "quickly_focus": "Sie können schnell auf dieses Feld fokussieren, indem Sie ⌘ + E drücken",
+    "quickly_focus": "Du kannst schnell auf dieses Feld fokussieren, indem du ⌘ + E drückst",
     "multiple_urls_dialog_title": "URLs als separate Lesezeichen importieren?",
-    "multiple_urls_dialog_desc": "Die Eingabe enthält mehrere URLs in separaten Zeilen. Möchten Sie sie als separate Lesezeichen importieren?",
+    "multiple_urls_dialog_desc": "Die Eingabe enthält mehrere URLs in separaten Zeilen. Möchtest du sie als separate Lesezeichen importieren?",
     "import_as_text": "Als Text-Lesezeichen importieren",
     "import_as_separate_bookmarks": "Als separate Lesezeichen importieren",
-    "placeholder": "Fügen Sie einen Link oder ein Bild ein, schreiben Sie eine Notiz oder ziehen Sie ein Bild hierher …",
+    "placeholder": "Füge einen Link oder ein Bild ein, schreibe eine Notiz oder ziehe ein Bild hierher …",
     "new_item": "NEUER EINTRAG",
     "disabled_submissions": "Einsendungen sind deaktiviert",
     "text_toolbar": {
@@ -875,7 +1014,7 @@
       "refetch": "Neuabruf wurde in die Warteschlange gestellt!",
       "full_page_archive": "Erstellung des vollständigen Seitenarchivs wurde ausgelöst",
       "delete_from_list": "Das Lesezeichen wurde aus der Liste gelöscht",
-      "clipboard_copied": "Link wurde in Ihre Zwischenablage kopiert!",
+      "clipboard_copied": "Link wurde in deine Zwischenablage kopiert!",
       "preserve_pdf": "Die PDF-Speicherung wurde ausgelöst",
       "update_banner": "Banner wurde aktualisiert!",
       "uploading_banner": "Banner wird hochgeladen ..."
@@ -888,7 +1027,9 @@
     },
     "tags": {
       "created": "Tag wurde erstellt!",
-      "failed_to_create": "Tag konnte nicht erstellt werden"
+      "failed_to_create": "Tag konnte nicht erstellt werden",
+      "updated": "Tag wurde aktualisiert!",
+      "failed_to_update": "Fehler beim Aktualisieren des Tags"
     }
   },
   "cleanups": {
@@ -904,7 +1045,8 @@
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_description": "Bist du sicher, dass du das Lesezeichen löschen willst?",
-      "delete_confirmation_title": "Lesezeichen löschen?"
+      "delete_confirmation_title": "Lesezeichen löschen?",
+      "bulk_delete_confirmation_description": "Sind Sie sicher, dass Sie {{count}} Lesezeichen löschen möchten?"
     }
   },
   "search": {
@@ -954,7 +1096,18 @@
     "lists": "Listen",
     "feeds": "Feeds",
     "is_from_source": "Quelle ist",
-    "is_not_from_source": "Quelle ist nicht"
+    "is_not_from_source": "Quelle ist nicht",
+    "mode_label": "Suchmodus",
+    "mode_label_description": "Wählen Sie aus, wie Karakeep passende Lesezeichen findet.",
+    "mode_keyword": "Stichwort",
+    "mode_keyword_description": "Exakte Wörter in Titeln, Inhalten, URLs und Notizen abgleichen. Nahezu sofort.",
+    "mode_hybrid": "Hybrid",
+    "mode_hybrid_description": "Kombiniert exakte Treffer mit verwandten Konzepten für die beste Balance. Langsamer als die Stichwortsuche.",
+    "mode_semantic": "Semantisch",
+    "mode_semantic_description": "Finden Sie konzeptionell ähnliche Lesezeichen, selbst ohne gemeinsame Wörter. Langsamer als die Stichwortsuche.",
+    "keyword_placeholder": "Suche in Titeln, Texten, URLs und Tags…",
+    "hybrid_placeholder": "Suche nach Wörtern oder Bedeutung…",
+    "semantic_placeholder": "Beschreiben Sie, woran Sie sich erinnern…"
   },
   "bookmark_editor": {
     "subtitle": "Ändere die Details des Lesezeichens. Klicke auf Speichern, wenn du fertig bist.",
@@ -1042,5 +1195,28 @@
     "download": "Herunterladen",
     "close": "Schließen",
     "generating": "Wird erstellt …"
+  },
+  "keyboard_shortcuts": {
+    "title": "Tastenkombinationen",
+    "sections": {
+      "navigation": "Navigation",
+      "actions": "Aktionen",
+      "selection": "Auswahl",
+      "other": "Sonstiges"
+    },
+    "move_left": "Nach links bewegen",
+    "move_down": "Nach unten bewegen",
+    "move_up": "Nach oben bewegen",
+    "move_right": "Nach rechts bewegen",
+    "open_bookmark": "Lesezeichen öffnen",
+    "clear_focus": "Fokus löschen / Massenbearbeitung beenden",
+    "toggle_favorite": "Favoriten umschalten",
+    "toggle_archive": "Archivieren / Dearchivieren",
+    "delete_bookmark": "Lesezeichen löschen",
+    "toggle_selection": "Auswahl umschalten",
+    "select_all": "Alle auswählen",
+    "deselect_all": "Auswahl aufheben",
+    "show_help": "Tastenkombinationen anzeigen",
+    "focus_search_alt": "Suche fokussieren"
   }
 }

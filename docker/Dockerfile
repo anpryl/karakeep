@@ -6,17 +6,18 @@ RUN apt-get update \
         libssl-dev \
         pkg-config \
     && rm -rf /var/lib/apt/lists/* \
-    && cargo install monolith
+    && cargo install monolith --locked
 
 ################# Base Builder ##############
-FROM node:24-slim AS base
+# Replace with node:24-slim as soon as https://github.com/nodejs/node/pull/65042 is fixed and uploaded to Docker hub
+FROM node:24.18.1-slim AS base
 
 WORKDIR /app
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
-# https://github.com/karakeep-app/karakeep/issues/967
-RUN npm install -g corepack@0.31.0 && corepack enable
+# Keep Corepack current enough to verify modern pnpm release signatures.
+RUN npm install -g corepack@latest && corepack enable pnpm
 
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
@@ -27,7 +28,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy package files for dependency installation
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/cli/package.json ./apps/cli/
 COPY apps/mcp/package.json ./apps/mcp/
 COPY apps/web/package.json ./apps/web/
@@ -48,7 +49,7 @@ COPY tooling/tailwind/package.json ./tooling/tailwind/
 COPY tooling/typescript/package.json ./tooling/typescript/
 COPY ./patches ./patches
 
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 RUN pnpm install --frozen-lockfile
 
@@ -64,18 +65,19 @@ RUN cd packages/db && \
 RUN (cd apps/web && pnpm exec next build --experimental-build-mode compile)
 
 # Build the worker code
-RUN (cd apps/workers && pnpm build)
-RUN pnpm deploy --node-linker=isolated --filter @karakeep/workers --prod /prod/workers
+RUN (cd apps/workers && pnpm --config.verify-deps-before-run=false build)
+RUN CI=true pnpm deploy --node-linker=isolated --legacy --filter @karakeep/workers --prod /prod/workers
 
 # Build the cli
-RUN (cd apps/cli && pnpm build)
+RUN (cd apps/cli && pnpm --config.verify-deps-before-run=false build)
 
 # Build the mcp server
-RUN (cd apps/mcp && pnpm build)
+RUN (cd apps/mcp && pnpm --config.verify-deps-before-run=false build)
 
 ################# The All-in-one builder ##############
 
-FROM node:24-slim AS aio_builder
+# Replace with node:24-slim as soon as https://github.com/nodejs/node/pull/65042 is fixed and uploaded to Docker hub
+FROM node:24.18.1-slim AS aio_builder
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
@@ -122,7 +124,7 @@ RUN apt-get update \
         curl \
         graphicsmagick \
         ghostscript \
-        libjemalloc2 \
+        ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 ARG TARGETARCH
@@ -134,6 +136,13 @@ RUN case ${TARGETARCH} in \
     && curl -fsSL https://github.com/yt-dlp/yt-dlp/releases/latest/download/${YTDLP_FILE} -o /usr/local/bin/yt-dlp \
     && chmod +x /usr/local/bin/yt-dlp
 
+# yt-dlp >=2025.x requires a JavaScript runtime to extract YouTube formats.
+# Deno is yt-dlp's default but is not present in this image. Node is the
+# base image and is fully supported by yt-dlp (min v20). Point yt-dlp at it
+# via its system config file so every invocation picks it up without
+# changes to the worker. Fixes karakeep-app/karakeep#2758.
+RUN echo "--js-runtimes node" > /etc/yt-dlp.conf
+
 # Copy monolith binary from builder
 COPY --from=monolith_builder /usr/local/cargo/bin/monolith /usr/local/bin/monolith
 
@@ -142,16 +151,8 @@ COPY --from=monolith_builder /usr/local/cargo/bin/monolith /usr/local/bin/monoli
 ######################
 
 ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXTAUTH_URL_INTERNAL=http://localhost:${PORT}
-
-# Create symlink for jemalloc based on architecture
-ARG TARGETARCH
-RUN if [ "$TARGETARCH" = "arm64" ]; then \
-        ln -s /usr/lib/aarch64-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so; \
-    else \
-        ln -s /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so; \
-    fi
 
 COPY --from=base --chown=node:node /app/apps/web/.next/standalone ./
 COPY --from=base /app/apps/web/public ./apps/web/public
@@ -179,7 +180,7 @@ RUN touch /etc/s6-overlay/s6-rc.d/user/contents.d/init-db-migration \
     /etc/s6-overlay/s6-rc.d/user/contents.d/svc-web \
     /etc/s6-overlay/s6-rc.d/user/contents.d/svc-workers
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 CMD wget --no-verbose --tries=1 --spider "http://127.0.0.1:${PORT:-3000}/api/health" || exit 1
 
 ################# The web container ##############
 
@@ -189,7 +190,7 @@ RUN touch /etc/s6-overlay/s6-rc.d/user/contents.d/init-db-migration \
     /etc/s6-overlay/s6-rc.d/user/contents.d/svc-web
 ENV USING_LEGACY_SEPARATE_CONTAINERS=true
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 CMD wget --no-verbose --tries=1 --spider "http://127.0.0.1:${PORT:-3000}/api/health" || exit 1
 
 ################# The workers container ##############
 
@@ -203,7 +204,8 @@ ENV USING_LEGACY_SEPARATE_CONTAINERS=true
 
 ################# The cli ##############
 
-FROM node:24-slim AS cli
+# Replace with node:24-slim as soon as https://github.com/nodejs/node/pull/65042 is fixed and uploaded to Docker hub
+FROM node:24.18.1-slim AS cli
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
@@ -218,7 +220,8 @@ ENTRYPOINT ["node", "index.mjs"]
 
 ################# MCP server ##############
 
-FROM node:24-slim AS mcp
+# Replace with node:24-slim as soon as https://github.com/nodejs/node/pull/65042 is fixed and uploaded to Docker hub
+FROM node:24.18.1-slim AS mcp
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
