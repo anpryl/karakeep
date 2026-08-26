@@ -8,4 +8,10 @@ export NODE_ENV=production
 # Drizzle will look for configuration in the working directory
 cd "@KARAKEEP_LIB_PATH@"/packages/db
 
-exec "@KARAKEEP_LIB_PATH@"/node_modules/.bin/drizzle-kit migrate
+"@KARAKEEP_LIB_PATH@"/node_modules/.bin/drizzle-kit migrate
+
+# Fork-local migrations: separate folder, separate bookkeeping table, so our numbering
+# can never collide with upstream's and meta/_journal.json stops conflicting on every
+# merge. drizzle-kit handles one folder per invocation, hence the second call rather
+# than a setting. Runs AFTER upstream's, because ours only ALTER tables it creates.
+exec "@KARAKEEP_LIB_PATH@"/node_modules/.bin/drizzle-kit migrate --config drizzle-fork.config.ts

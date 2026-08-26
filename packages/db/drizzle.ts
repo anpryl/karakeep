@@ -33,6 +33,11 @@ export function getInMemoryDB(runMigrations: boolean) {
   const db = drizzle(mem, { schema, logger: false });
   if (runMigrations) {
     migrate(db, { migrationsFolder: path.resolve(__dirname, "./drizzle") });
+    // Fork-local lineage; see migrate.ts for why it is separate.
+    migrate(db, {
+      migrationsFolder: path.resolve(__dirname, "./drizzle-fork"),
+      migrationsTable: "__drizzle_migrations_fork",
+    });
   }
   return db;
 }
