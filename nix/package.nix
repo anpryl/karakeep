@@ -11,7 +11,7 @@
   python3,
   srcOnly,
   removeReferencesTo,
-  pnpm_9,
+  pnpm_11,
   fetchPnpmDeps,
   pnpmConfigHook,
 
@@ -45,7 +45,7 @@ stdenv.mkDerivation (finalAttrs: {
     nodejs
     node-gyp
     pnpmConfigHook
-    pnpm_9
+    pnpm_11
   ];
 
   buildInputs = [
@@ -54,7 +54,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version;
-    pnpm = pnpm_9;
+    pnpm = pnpm_11;
 
     # We need to pass the patched source code, so pnpm sees the patched version
     src = stdenv.mkDerivation {
@@ -67,7 +67,7 @@ stdenv.mkDerivation (finalAttrs: {
 
     fetcherVersion = 3;
     # Recomputed for THIS tree; nixpkgs' hash is for upstream 0.32.0's lockfile.
-    hash = "sha256-zO8K+VyYQnkwn6Hf6oKHhSAOICogNgSvsv/ipb+xsX8=";
+    hash = "sha256-gKcYq9PCSKa54w3EcHXEu82Zb7xaWCxCtNgx/aD3+Jw=";
   };
   buildPhase = ''
     runHook preBuild
@@ -99,9 +99,21 @@ stdenv.mkDerivation (finalAttrs: {
   '';
 
   preInstall = ''
-    # provide a environment variable to override the cache directory
+    # Let NEXT_CACHE_DIR override where Next writes its optimised-image cache;
+    # without this it writes under distDir, which is inside the read-only store.
     # https://github.com/vercel/next.js/discussions/58864
-    patch -p1 -i ${./patches/cache-from-env-not-nix-store.patch}
+    #
+    # A substitution rather than nixpkgs' patch file. That patch is a line-numbered
+    # diff against Next's BUNDLED dist, so it broke the moment the v0.33.2 merge took
+    # Next 15.3.8 -> 16.2.12 and the target moved from line 495 to 668 (Next also
+    # gained a `cacheHandler` constructor arg and a turbopackIgnore comment on the very
+    # line being patched). --replace-fail is immune to the move and still fails the
+    # build loudly if Next ever restructures this for real, which is the property that
+    # matters: silently not applying it would put the cache in the store path.
+    substituteInPlace apps/web/.next/standalone/node_modules/next/dist/server/image-optimizer.js \
+      --replace-fail \
+        "this.cacheDir = (0, _path.join)(/* turbopackIgnore: true */ distDir, 'cache', 'images');" \
+        "const cacheDir = process.env['NEXT_CACHE_DIR'] || (0, _path.join)(/* turbopackIgnore: true */ distDir, 'cache'); this.cacheDir = (0, _path.join)(/* turbopackIgnore: true */ cacheDir, 'images');"
   '';
 
   installPhase = ''

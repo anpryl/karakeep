@@ -10,12 +10,12 @@
     #     and pnpmConfigHook is guaranteed to match the API here. When bumping, diff
     #     nixpkgs' karakeep against nix/package.nix rather than assuming.
     #
-    #  2. THIS REV STILL HAS pnpm_9. Newer nixpkgs removed it — "'pnpm_9' was removed
-    #     because it reached EOL on 2026-04-30" — as an unconditional throw in
-    #     aliases.nix that no config setting can override. karakeep's lockfile is a
-    #     pnpm 9 lockfile, so this flake CANNOT be bumped past that removal until the
-    #     source itself moves to pnpm 11 (upstream v0.33.x declares pnpm@11.2.1).
-    #     Bumping nixpkgs and moving to pnpm 11 are therefore ONE change, not two.
+    #  2. It has pnpm_11, which this tree needs since the v0.33.2 merge. Before that
+    #     merge the constraint ran the other way: the tree was pnpm 9 and newer
+    #     nixpkgs had REMOVED pnpm_9 ("reached EOL on 2026-04-30", an unconditional
+    #     throw in aliases.nix that no config can override), which pinned this flake
+    #     below that removal. Moving the source to pnpm 11 lifted that ceiling, so
+    #     this rev is now a free choice rather than a forced one.
     nixpkgs.url = "github:NixOS/nixpkgs/f4f698677b11021a8f84f452e23ae9ef2427bec3";
 
     # nodejs 24.18.1, used ONLY to build karakeep. 24.19.0 makes karakeep's bundled
@@ -45,16 +45,11 @@
       # flake does not silently rename the store path's version component.
       version = "0-unstable-${self.shortRev or self.dirtyShortRev or "dirty"}";
 
-      # karakeep builds with pnpm 9, which nixpkgs marks insecure. Permitted HERE, in
-      # the flake that actually needs it, so consumers no longer carry a
-      # permittedInsecurePackages entry for a build detail of ours. pnpm runs only at
-      # build time, in phases that are either hash-pinned (pnpmDeps) or offline.
-      pkgsFor =
-        system:
-        import nixpkgs {
-          inherit system;
-          config.permittedInsecurePackages = [ "pnpm-9.15.9" ];
-        };
+      # Since the v0.33.2 merge this tree declares pnpm@11.2.1, so the build uses
+      # pnpm_11 and no longer needs an insecure-package exception. The seven pnpm 9
+      # advisories that forced `permittedInsecurePackages = [ "pnpm-9.15.9" ]` — here
+      # and in every consumer — are simply gone.
+      pkgsFor = system: import nixpkgs { inherit system; };
 
       karakeepFor =
         system:
