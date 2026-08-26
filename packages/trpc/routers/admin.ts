@@ -492,7 +492,7 @@ export const adminAppRouter = router({
         ),
       );
     }),
-  recacheContentImages: adminJobsProcedure
+  recacheContentImages: adminBookmarksProcedure
     .input(
       z.object({
         contentImageStatus: z.enum(["failure", "all"]),
